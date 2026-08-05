@@ -28,6 +28,9 @@ no destructive PEOS operation is introduced.
 
 ## Verification ledger
 
+- [READ] GitHub Actions failed at Linux mypy due to an improperly narrowed Windows-specific
+  `msvcrt` branch. Remote CI is not yet verified green for the repaired commit.
+
 - [RAN] `python --version` -> `Python 3.11.7`.
 - [RAN] `git --version` -> `git version 2.51.0.windows.2`.
 - [RAN] Before installation, `uv --version` was unavailable and Python had no pytest, Ruff, or
