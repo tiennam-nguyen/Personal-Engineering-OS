@@ -89,14 +89,38 @@ def validate_artifact(
     if not artifact.authors:
         raise ValidationError("Artifact authors must be non-empty.")
     for author in artifact.authors:
-        if not author.kind or not author.id:
+        if author.kind not in {"human", "system"} or not author.id:
             raise ValidationError("Artifact authors are invalid.")
     if artifact.links:
         raise ValidationError("Links are not supported in Milestone 1.")
-    if artifact.provenance.producer != "human" or artifact.provenance.run_id is not None:
-        raise ValidationError("Milestone 1 provenance must be human without a run ID.")
-    if artifact.provenance.source_refs:
-        raise ValidationError("Milestone 1 provenance source references must be empty.")
+    provenance = artifact.provenance
+    if provenance.producer == "human":
+        if (
+            provenance.run_id is not None
+            or provenance.source_refs
+            or artifact.authors != (Author("human", "user"),)
+        ):
+            raise ValidationError("Human provenance must have human/user authors and no sources.")
+    elif provenance.producer == "system":
+        if not isinstance(provenance.run_id, str) or not re.fullmatch(
+            r"run_[0-9a-f]{32}", provenance.run_id
+        ):
+            raise ValidationError("System provenance run ID is invalid.")
+        if (
+            not any(author.kind == "system" for author in artifact.authors)
+            or not provenance.source_refs
+        ):
+            raise ValidationError("System provenance requires a system author and sources.")
+        for source in provenance.source_refs:
+            if not isinstance(source, dict) or set(source) != {"artifact_id", "content_hash"}:
+                raise ValidationError("System source references are invalid.")
+            validate_artifact_id(source["artifact_id"])
+            if not isinstance(source["content_hash"], str) or not CONTENT_HASH_PATTERN.fullmatch(
+                source["content_hash"]
+            ):
+                raise ValidationError("System source content hash is invalid.")
+    else:
+        raise ValidationError("Artifact provenance producer is invalid.")
     normalized_body = normalize_body(artifact.body)
     normalized_tags = normalize_tags(list(artifact.tags))
     if require_hash:

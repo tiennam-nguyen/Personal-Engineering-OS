@@ -24,7 +24,22 @@ Rebuild: canonical scan/verification → side SQLite database → swap after clo
 
 ## Ownership and limitations
 
-Canonical state is `artifacts/knowledge/*.md`; `.peos/index.sqlite3` is derived state. One writer
-per workspace is assumed. `os.replace` provides same-filesystem atomic visibility and file `fsync`
+Canonical state is `artifacts/knowledge/*.md`; `.peos/index.sqlite3` is derived state. One mutator
+per workspace is enforced by `.peos/locks/workspace.lock`. `os.replace` provides same-filesystem atomic visibility and file `fsync`
 is best-effort durability; power-loss guarantees are not claimed. SQLite LIKE search is offline but
 not a 50,000-artifact performance claim.
+## Milestone 2 run topology
+
+- `domain/runs/model.py` owns IDs, states and canonical JSON;
+  `domain/runs/events.py:verify_events` validates and replays the authoritative event chain.
+- `ports/run_repository.py:RunRepository` isolates storage;
+  `ports/fault_injector.py:FaultInjector` is a test-only crash seam.
+- `adapters/filesystem/run_repository.py:FilesystemRunRepository` owns immutable run files and the
+  append-only, fsynced journal. `workspace_lock.py:WorkspaceLock` serializes full mutating commands.
+- `application/runs.py:RunService` freezes input, resumes from durable frontiers, commits canonical
+  data before SQLite projection, reconciles identical state, and fails closed on conflicts.
+- `workflows/sample.py:prepare` and `verify_prepared` define the only deterministic workflow.
+
+Start flows through frozen input -> committed step-1 evidence -> staged step-2 evidence -> canonical
+artifact -> SQLite projection -> outputs -> success. Cancellation preserves durable evidence and
+artifacts. There is no run index, arbitrary workflow loading, live-signal cancellation, or model integration.

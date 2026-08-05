@@ -44,6 +44,14 @@ class Workspace:
     def dirty_path(self) -> Path:
         return self.operational_root / "INDEX_DIRTY"
 
+    @property
+    def runs_root(self) -> Path:
+        return self.operational_root / "runs"
+
+    @property
+    def locks_root(self) -> Path:
+        return self.operational_root / "locks"
+
 
 class WorkspaceStore:
     def initialize(self, root: Path) -> tuple[Workspace, bool]:
@@ -111,3 +119,5 @@ class WorkspaceStore:
             raise WorkspaceConfigurationError("Operational path must be a directory.")
         workspace.artifact_root.mkdir(parents=True, exist_ok=True)
         workspace.staging_root.mkdir(parents=True, exist_ok=True)
+        workspace.runs_root.mkdir(parents=True, exist_ok=True)
+        workspace.locks_root.mkdir(parents=True, exist_ok=True)

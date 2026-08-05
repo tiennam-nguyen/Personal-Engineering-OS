@@ -15,7 +15,7 @@ class Author:
 class Provenance:
     producer: str
     run_id: str | None
-    source_refs: tuple[str, ...]
+    source_refs: tuple[object, ...]
 
 
 @dataclass(frozen=True)

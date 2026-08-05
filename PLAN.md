@@ -55,10 +55,6 @@ rebuild; argparse CLI; integration coverage.
 Residual risks: single-writer only; best-effort durability only; LIKE search is intentionally
 simple.
 
-## Milestone 2 frontier
-
-Implement deterministic run journaling and resumable workflows. Do not begin it in this change.
-
 ## Stop conditions
 
 Stop AMBER/RED if a destructive operation lacks recovery; source cannot be read; the map conflicts
@@ -74,3 +70,32 @@ expand; an external API is unverified; or two milestones in sequence require pla
    falsifier: a fresh checkout cannot resolve and run the committed lockfile.
 3. [ASSUMED] GitHub Actions is the intended CI host. Cheapest falsifier: user names another CI
    host before CI is relied on.
+## Milestone 2 — run journal and resumable deterministic workflow
+
+Status: `GREEN` in the uncommitted working tree.
+
+Delivered immutable run files, append-only journal/replay, deterministic two-step workflow,
+test-only fault injection, recovery reconciliation, cancellation, cross-platform mutation lock,
+and JSON CLI.
+
+Verification evidence:
+
+- [RAN] Ruff format/check passed; mypy found no issues in 48 source files.
+- [RAN] `python -m pytest` and `uv run --locked pytest`: `77 passed` each.
+- [RAN] collect-only: artifact 8; Milestone 1 CLI 2; cancellation 10; run CLI 12;
+  crash boundaries 10; repository/lock 5; architecture 7; journal 18; state 2; workflow 3.
+- [RAN] real Windows subprocess contention blocked a second mutator; process death released the
+  byte lock; inspect/verify remained available while it was held.
+- [RAN] all nine crash checkpoints passed recovery tests.
+- [RAN] stop/resume `run_b4a6bdd81a124cd3bfd386f3ba1605e6`, step
+  `step_40c5347c8399e1e17417afd606681ece`: execution count `1 -> 1`, sequences `11 -> 26`, output
+  `art_6e496dd6afbf3a0bfe0230a309bf0e4a` at
+  `sha256:91924ad04d999fdf2421a9be202fb955a67c77fb299da00cbfd96b90ad8a6ba5`.
+- [RAN] cancellation `run_4f619b7ce4b940f894fcd1db29eb794a`: inspect/verify CANCELLED;
+  resume exit 4 without traceback; event count `12 -> 12`.
+
+Residual assumptions: OS locking is local-machine only; power-loss behavior beyond tested fsync
+boundaries is unknown; the hash chain detects accidental corruption, not hostile workspace control.
+
+Milestone 3 frontier only: versioned protocol registry; context manifest/compiler; deterministic mock
+model gateway; request/response audit; budget and cache contracts.

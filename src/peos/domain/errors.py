@@ -61,3 +61,38 @@ class IndexDivergenceError(PeosError):
 class IndexRebuildError(PeosError):
     code = "index_rebuild_failed"
     exit_code = 4
+
+
+class RunNotFound(PeosError):
+    code = "run_not_found"
+    exit_code = 3
+
+
+class JournalCorruptionError(PeosError):
+    code = "journal_corruption"
+    exit_code = 4
+
+
+class InvalidRunTransition(PeosError):
+    code = "invalid_run_transition"
+    exit_code = 4
+
+
+class TerminalRunError(PeosError):
+    code = "terminal_run"
+    exit_code = 4
+
+
+class RunConflictError(PeosError):
+    code = "run_conflict"
+    exit_code = 4
+
+
+class InputRevisionMismatch(PeosError):
+    code = "input_revision_mismatch"
+    exit_code = 4
+
+
+class WorkspaceLockedError(PeosError):
+    code = "workspace_locked"
+    exit_code = 5

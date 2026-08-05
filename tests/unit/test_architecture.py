@@ -13,7 +13,19 @@ SOURCE_ROOT = Path(__file__).parents[2] / "src" / "peos"
 @pytest.mark.parametrize(
     ("package", "forbidden"),
     [
-        ("domain", ("peos.adapters", "peos.cli", "sqlite3", "pathlib", "os", "openai")),
+        (
+            "domain",
+            (
+                "peos.adapters",
+                "peos.cli",
+                "sqlite3",
+                "pathlib",
+                "os",
+                "yaml",
+                "argparse",
+                "openai",
+            ),
+        ),
         ("application", ("peos.adapters", "peos.cli")),
         ("workflows", ("peos.adapters",)),
         ("cli", ("peos.adapters",)),
@@ -38,3 +50,33 @@ def _imported_modules(path: Path) -> set[str]:
         elif isinstance(node, ast.ImportFrom) and node.module is not None:
             modules.add(node.module)
     return modules
+
+
+def test_filesystem_run_repository_implements_port_shape() -> None:
+    from peos.adapters.filesystem.run_repository import FilesystemRunRepository
+
+    required = {
+        "create",
+        "read_manifest",
+        "read_inputs",
+        "events",
+        "append",
+        "write_evidence",
+        "read_evidence",
+        "write_outputs",
+        "read_outputs",
+    }
+    assert required <= set(dir(FilesystemRunRepository))
+
+
+def test_registered_workflow_has_independent_verifier() -> None:
+    from peos.workflows import sample
+
+    assert callable(sample.prepare)
+    assert callable(sample.verify_prepared)
+
+
+def test_no_model_tool_or_milestone_3_modules_exist() -> None:
+    forbidden = ("model_gateway", "tool_executor", "protocol_registry", "context_compiler")
+    paths = [path.as_posix() for path in SOURCE_ROOT.rglob("*.py")]
+    assert not any(name in path for name in forbidden for path in paths)

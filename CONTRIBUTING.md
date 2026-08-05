@@ -43,3 +43,22 @@ adding a boundary, rather than bypassing it.
 
 No package installation command is treated as verified merely because it is documented. The
 Milestone 0 command transcript records the installed resolver's actual result.
+## Run workflow verification
+
+Use focused locked tests for run state/journal/sample workflow, `test_run_repository.py`,
+`test_run_crash_boundaries.py`, `test_run_cancellation.py`, and `test_run_cli.py`, then run:
+
+```powershell
+git diff --check
+uv lock --check
+ruff format --check .
+ruff check .
+python -m mypy
+python -m pytest
+uv run --locked pytest
+```
+
+Fault injection is test-only. Windows contention is verified with real subprocesses using
+`msvcrt.locking`; closing the process-held handle releases the lock. POSIX uses `fcntl.flock`.
+CLI smoke workspaces must be temporary, outside the repository, and checked for `peos.yaml` before
+deleting only their exact resolved paths.

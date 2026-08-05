@@ -2,25 +2,33 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from peos.adapters.filesystem.repository import FilesystemArtifactRepository
+from peos.adapters.filesystem.run_repository import FilesystemRunRepository
 from peos.adapters.filesystem.workspace import WorkspaceStore
+from peos.adapters.filesystem.workspace_lock import WorkspaceLock
 from peos.adapters.sqlite.artifact_index import SQLiteArtifactIndex
 from peos.application.artifacts import ArtifactService
 from peos.application.indexing import IndexingService
+from peos.application.runs import RunService
+from peos.ports.fault_injector import FaultInjector
 
 
 def initialize_workspace(root: Path) -> tuple[ArtifactService, IndexingService, str, bool]:
     store = WorkspaceStore()
-    workspace, created = store.initialize(root)
-    index = SQLiteArtifactIndex(workspace.index_path)
-    if not index.is_healthy():
-        index.initialize()
-    repository = FilesystemArtifactRepository(workspace, store)
-    command = f"peos --workspace {workspace.root}"
-    artifacts = ArtifactService(repository, index, workspace.workspace_id, command)
-    return artifacts, IndexingService(repository, index), workspace.workspace_id, created
+    root = root.resolve()
+    with WorkspaceLock(root / ".peos" / "locks" / "workspace.lock", "init"):
+        workspace, created = store.initialize(root)
+        index = SQLiteArtifactIndex(workspace.index_path)
+        if not index.is_healthy():
+            index.initialize()
+        repository = FilesystemArtifactRepository(workspace, store)
+        command = f"peos --workspace {workspace.root}"
+        artifacts = ArtifactService(repository, index, workspace.workspace_id, command)
+        return artifacts, IndexingService(repository, index), workspace.workspace_id, created
 
 
 def open_workspace(root: Path) -> tuple[ArtifactService, IndexingService]:
@@ -31,3 +39,23 @@ def open_workspace(root: Path) -> tuple[ArtifactService, IndexingService]:
     command = f"peos --workspace {workspace.root}"
     artifacts = ArtifactService(repository, index, workspace.workspace_id, command)
     return artifacts, IndexingService(repository, index)
+
+
+def open_run_workspace(root: Path, fault_injector: FaultInjector | None = None) -> RunService:
+    store = WorkspaceStore()
+    workspace = store.open(root)
+    return RunService(
+        FilesystemRunRepository(workspace),
+        FilesystemArtifactRepository(workspace, store),
+        SQLiteArtifactIndex(workspace.index_path),
+        workspace.workspace_id,
+        fault_injector,
+    )
+
+
+@contextmanager
+def mutation_lock(root: Path, command: str) -> Iterator[None]:
+    """Acquire only at bootstrap so CLI/application remain adapter-independent."""
+    workspace = WorkspaceStore().open(root)
+    with WorkspaceLock(workspace.locks_root / "workspace.lock", command):
+        yield

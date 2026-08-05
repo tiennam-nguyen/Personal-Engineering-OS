@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 
-from peos.bootstrap import initialize_workspace, open_workspace
+from peos.bootstrap import initialize_workspace, mutation_lock, open_run_workspace, open_workspace
 from peos.domain.artifacts.model import StoredArtifact
 from peos.domain.errors import PeosError
 
@@ -35,6 +35,19 @@ def _parser() -> argparse.ArgumentParser:
     verify.add_argument("artifact_id")
     index = commands.add_parser("index").add_subparsers(dest="index_command", required=True)
     index.add_parser("rebuild")
+    run = commands.add_parser("run").add_subparsers(dest="run_command", required=True)
+    start = run.add_parser("start")
+    start.add_argument("workflow")
+    start.add_argument("--input", required=True)
+    start.add_argument("--stop-after-step", choices=["prepare-derived-concept"])
+    inspect = run.add_parser("inspect")
+    inspect.add_argument("run_id")
+    resume = run.add_parser("resume")
+    resume.add_argument("run_id")
+    cancel = run.add_parser("cancel")
+    cancel.add_argument("run_id")
+    verify_run = run.add_parser("verify")
+    verify_run.add_argument("run_id")
     return parser
 
 
@@ -84,9 +97,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         artifacts, indexing = open_workspace(workspace)
         if arguments.command == "artifact" and arguments.artifact_command == "create":
-            stored = artifacts.create_concept(
-                arguments.title, arguments.body, arguments.tag, arguments.id
-            )
+            with mutation_lock(workspace, "artifact create"):
+                stored = artifacts.create_concept(
+                    arguments.title, arguments.body, arguments.tag, arguments.id
+                )
             _emit(
                 {
                     "canonical_path": stored.canonical_path,
@@ -114,7 +128,8 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
         if arguments.command == "index" and arguments.index_command == "rebuild":
-            count = indexing.rebuild()
+            with mutation_lock(workspace, "index rebuild"):
+                count = indexing.rebuild()
             _emit(
                 {
                     "artifacts_indexed": count,
@@ -123,6 +138,31 @@ def main(argv: list[str] | None = None) -> int:
                 }
             )
             return 0
+        if arguments.command == "run":
+            runs = open_run_workspace(workspace)
+            if arguments.run_command == "start":
+                with mutation_lock(workspace, "run start"):
+                    result = runs.start(
+                        arguments.workflow, arguments.input, arguments.stop_after_step
+                    )
+                _emit(result)
+                return 0
+            if arguments.run_command == "inspect":
+                _emit(runs.inspect(arguments.run_id))
+                return 0
+            if arguments.run_command == "resume":
+                with mutation_lock(workspace, "run resume"):
+                    result = runs.resume(arguments.run_id)
+                _emit(result)
+                return 0
+            if arguments.run_command == "cancel":
+                with mutation_lock(workspace, "run cancel"):
+                    result = runs.cancel(arguments.run_id)
+                _emit(result)
+                return 0
+            if arguments.run_command == "verify":
+                _emit(runs.verify(arguments.run_id))
+                return 0
         parser.error("Unknown command.")
     except PeosError as error:
         suffix = f" Recovery: {error.recovery_action}" if error.recovery_action else ""
