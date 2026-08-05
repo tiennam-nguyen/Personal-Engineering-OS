@@ -8,7 +8,13 @@ import os
 import sys
 from pathlib import Path
 
-from peos.bootstrap import initialize_workspace, mutation_lock, open_run_workspace, open_workspace
+from peos.bootstrap import (
+    initialize_workspace,
+    mutation_lock,
+    open_protocol_workspace,
+    open_run_workspace,
+    open_workspace,
+)
 from peos.domain.artifacts.model import StoredArtifact
 from peos.domain.errors import PeosError
 
@@ -18,6 +24,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--workspace", default=".")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("init")
+    protocol = commands.add_parser("protocol").add_subparsers(
+        dest="protocol_command", required=True
+    )
+    protocol.add_parser("list")
+    protocol_verify = protocol.add_parser("verify")
+    protocol_verify.add_argument("name")
+    protocol_verify.add_argument("version")
     artifact = commands.add_parser("artifact").add_subparsers(
         dest="artifact_command", required=True
     )
@@ -39,7 +52,11 @@ def _parser() -> argparse.ArgumentParser:
     start = run.add_parser("start")
     start.add_argument("workflow")
     start.add_argument("--input", required=True)
-    start.add_argument("--stop-after-step", choices=["prepare-derived-concept"])
+    start.add_argument(
+        "--stop-after-step",
+        choices=["prepare-derived-concept", "mock-summarize-concept"],
+    )
+    start.add_argument("--no-cache", action="store_true")
     inspect = run.add_parser("inspect")
     inspect.add_argument("run_id")
     resume = run.add_parser("resume")
@@ -96,6 +113,36 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
         artifacts, indexing = open_workspace(workspace)
+        if arguments.command == "protocol":
+            protocols = open_protocol_workspace(workspace)
+            if arguments.protocol_command == "list":
+                _emit(
+                    [
+                        {
+                            "name": item.name,
+                            "version": item.version,
+                            "sha256": item.sha256,
+                            "status": item.status,
+                            "task_kinds": list(item.task_kinds),
+                            "output_contracts": list(item.output_contracts),
+                            "sensitivity_ceiling": item.sensitivity_ceiling,
+                        }
+                        for item in protocols.list()
+                    ]
+                )
+                return 0
+            if arguments.protocol_command == "verify":
+                item = protocols.get(arguments.name, arguments.version)
+                _emit(
+                    {
+                        "name": item.name,
+                        "version": item.version,
+                        "sha256": item.sha256,
+                        "status": item.status,
+                        "valid": True,
+                    }
+                )
+                return 0
         if arguments.command == "artifact" and arguments.artifact_command == "create":
             with mutation_lock(workspace, "artifact create"):
                 stored = artifacts.create_concept(
@@ -143,7 +190,10 @@ def main(argv: list[str] | None = None) -> int:
             if arguments.run_command == "start":
                 with mutation_lock(workspace, "run start"):
                     result = runs.start(
-                        arguments.workflow, arguments.input, arguments.stop_after_step
+                        arguments.workflow,
+                        arguments.input,
+                        arguments.stop_after_step,
+                        arguments.no_cache,
                     )
                 _emit(result)
                 return 0

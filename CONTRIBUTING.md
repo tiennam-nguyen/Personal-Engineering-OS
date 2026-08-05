@@ -62,3 +62,13 @@ Fault injection is test-only. Windows contention is verified with real subproces
 `msvcrt.locking`; closing the process-held handle releases the lock. POSIX uses `fcntl.flock`.
 CLI smoke workspaces must be temporary, outside the repository, and checked for `peos.yaml` before
 deleting only their exact resolved paths.
+
+## Protocol/model verification
+
+Run focused protocol, context, contract, mock, budget, cache, workflow, event/resume, CLI, and
+architecture tests before the full suite. The production registry is mock-only: do not add provider
+SDKs, HTTP clients, credentials, fallback, or automatic retry. CLI smoke must demonstrate miss,
+equivalent hit with zero call events, `--no-cache`, and stopped-step resume.
+
+The final gate includes normal mypy, `uv run --locked mypy --platform linux`,
+`uv run --locked mypy --platform win32`, both Python and locked pytest, and collect-only inventory.

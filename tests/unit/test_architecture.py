@@ -76,7 +76,7 @@ def test_registered_workflow_has_independent_verifier() -> None:
     assert callable(sample.verify_prepared)
 
 
-def test_no_model_tool_or_milestone_3_modules_exist() -> None:
-    forbidden = ("model_gateway", "tool_executor", "protocol_registry", "context_compiler")
+def test_no_tool_or_milestone_4_modules_exist() -> None:
+    forbidden = ("tool_executor", "research_compiler")
     paths = [path.as_posix() for path in SOURCE_ROOT.rglob("*.py")]
     assert not any(name in path for name in forbidden for path in paths)

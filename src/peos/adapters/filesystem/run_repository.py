@@ -98,16 +98,24 @@ class FilesystemRunRepository:
         self.events(run_id)
 
     def write_evidence(self, run_id: str, name: str, envelope: dict[str, object]) -> None:
-        path = self._root(run_id) / "evidence" / name
+        evidence_root = (self._root(run_id) / "evidence").resolve()
+        path = (evidence_root / name).resolve()
+        if evidence_root not in path.parents:
+            raise RunConflictError("Evidence path escapes the run directory.")
         expected = self._sealed(envelope)
         if path.exists():
             if self._read_json(path) != expected:
                 raise RunConflictError("Evidence conflicts with existing immutable evidence.")
             return
+        path.parent.mkdir(parents=True, exist_ok=True)
         self._write_new(path, expected)
 
     def read_evidence(self, run_id: str, name: str) -> dict[str, object]:
-        result = self._read_json(self._root(run_id) / "evidence" / name)
+        evidence_root = (self._root(run_id) / "evidence").resolve()
+        path = (evidence_root / name).resolve()
+        if evidence_root not in path.parents:
+            raise JournalCorruptionError("Evidence path escapes the run directory.")
+        result = self._read_json(path)
         content_hash = result.pop("content_hash", None)
         if content_hash != sha256(result):
             raise JournalCorruptionError("Evidence hash is invalid.")

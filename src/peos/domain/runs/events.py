@@ -30,6 +30,15 @@ STEP_EVENTS = {
     "step.commit_started",
     "artifact.canonical_committed",
     "artifact.projected",
+    "protocol.loaded",
+    "context.compiled",
+    "model.request_compiled",
+    "model.cache_miss",
+    "model.cache_hit",
+    "model.call_started",
+    "model.call_completed",
+    "model.response_validated",
+    "model.budget_recorded",
 }
 TERMINAL = {"run.succeeded", "run.failed", "run.cancelled"}
 PAYLOAD_KEYS = {
@@ -53,6 +62,15 @@ PAYLOAD_KEYS = {
     "artifact.canonical_committed": {"artifact_id", "canonical_path", "content_hash"},
     "artifact.projected": {"artifact_id", "content_hash"},
     "step.committed": {"output_refs"},
+    "protocol.loaded": {"call_id", "evidence_path", "content_hash"},
+    "context.compiled": {"call_id", "evidence_path", "content_hash"},
+    "model.request_compiled": {"call_id", "evidence_path", "content_hash"},
+    "model.cache_miss": {"call_id", "cache_key", "bypassed"},
+    "model.cache_hit": {"call_id", "cache_key", "origin_run_id", "origin_call_id"},
+    "model.call_started": {"call_id", "provider", "model", "model_revision"},
+    "model.call_completed": {"call_id", "provider_request_id"},
+    "model.response_validated": {"call_id", "evidence_path", "content_hash", "response_hash"},
+    "model.budget_recorded": {"call_id", "evidence_path", "content_hash", "passed"},
 }
 
 
@@ -169,12 +187,35 @@ def _replay_event(
         "artifact.canonical_committed": "step.commit_started",
         "artifact.projected": "artifact.canonical_committed",
         "step.committed": "step.verification_completed",
+        "protocol.loaded": "step.execution_started",
+        "context.compiled": "protocol.loaded",
+        "model.request_compiled": "context.compiled",
+        "model.cache_miss": "model.request_compiled",
+        "model.cache_hit": "model.request_compiled",
+        "model.call_started": "model.cache_miss",
+        "model.call_completed": "model.call_started",
+        "model.response_validated": "model.request_compiled",
+        "model.budget_recorded": "model.response_validated",
     }
     required = requirements.get(event.type)
     if required is not None and required not in seen:
         raise JournalCorruptionError("Illegal step lifecycle transition.")
     if event.type in seen:
         raise JournalCorruptionError("Duplicate durable step transition.")
+    if event.type == "model.cache_hit" and "model.cache_miss" in seen:
+        raise JournalCorruptionError("Model step cannot be both cache hit and miss.")
+    if event.type == "model.cache_miss" and "model.cache_hit" in seen:
+        raise JournalCorruptionError("Model step cannot be both cache hit and miss.")
+    if event.type == "model.response_validated" and not (
+        "model.cache_hit" in seen or "model.call_completed" in seen
+    ):
+        raise JournalCorruptionError("Model response is unavailable for validation.")
+    if (
+        event.type == "step.output_staged"
+        and "model.request_compiled" in seen
+        and "model.budget_recorded" not in seen
+    ):
+        raise JournalCorruptionError("Model output cannot stage before budget passes.")
     if event.type == "artifact.projected" and "artifact.canonical_committed" not in seen:
         raise JournalCorruptionError("Projection cannot precede canonical commit.")
     seen.add(event.type)

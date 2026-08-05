@@ -42,4 +42,24 @@ not a 50,000-artifact performance claim.
 
 Start flows through frozen input -> committed step-1 evidence -> staged step-2 evidence -> canonical
 artifact -> SQLite projection -> outputs -> success. Cancellation preserves durable evidence and
-artifacts. There is no run index, arbitrary workflow loading, live-signal cancellation, or model integration.
+artifacts. There is no run index, arbitrary workflow loading, or live-signal cancellation.
+
+## Milestone 3 protocol and model topology
+
+- `domain/protocols/model.py:ProtocolDefinition` owns protocol identity; the filesystem protocol
+  repository verifies strict registry records, canonical paths, UTF-8 bytes, and raw SHA-256.
+- `application/context.py:ContextCompiler` selects independently verified canonical artifacts in
+  deterministic order. `ContextBlock` retains content only as untrusted data with exact revisions.
+- `domain/models/request.py:ModelRequest` keeps instruction, intent, context, source, and schema
+  channels separate. `domain/models/audit.py` owns route, cache-key, response-hash, and budget rules.
+- Model gateway, cache, and protocol repository are ports. Bootstrap alone wires filesystem adapters
+  and `adapters/models/mock.py:DeterministicMockGateway`; application/workflows import no adapters.
+- `application/modeling.py:ModelCallService.execute` coordinates protocol, context, request, cache,
+  response, budget, and five immutable audit files without committing canonical knowledge.
+- `application/runs.py:RunService._execute_model` verifies the prepared result and performs the
+  canonical-first artifact commit followed by SQLite projection. Committed model steps are skipped.
+
+Model evidence is below `.peos/runs/<run>/evidence/model-calls/<call>/`; cache below
+`.peos/cache/model/` is hashed workspace-local derived state. Miss calls the mock once; hit retains
+origin provenance and emits no call events; bypass neither reads nor writes cache. There is no real
+provider, network, fallback, retry, semantic retrieval, summary substitution, or cache GC.

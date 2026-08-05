@@ -6,13 +6,18 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
+from peos.adapters.filesystem.model_cache import FilesystemModelCache
+from peos.adapters.filesystem.protocol_repository import FilesystemProtocolRepository
 from peos.adapters.filesystem.repository import FilesystemArtifactRepository
 from peos.adapters.filesystem.run_repository import FilesystemRunRepository
 from peos.adapters.filesystem.workspace import WorkspaceStore
 from peos.adapters.filesystem.workspace_lock import WorkspaceLock
+from peos.adapters.models.mock import DeterministicMockGateway
 from peos.adapters.sqlite.artifact_index import SQLiteArtifactIndex
 from peos.application.artifacts import ArtifactService
+from peos.application.context import ContextCompiler
 from peos.application.indexing import IndexingService
+from peos.application.modeling import ModelCallService
 from peos.application.runs import RunService
 from peos.ports.fault_injector import FaultInjector
 
@@ -44,13 +49,27 @@ def open_workspace(root: Path) -> tuple[ArtifactService, IndexingService]:
 def open_run_workspace(root: Path, fault_injector: FaultInjector | None = None) -> RunService:
     store = WorkspaceStore()
     workspace = store.open(root)
+    artifacts = FilesystemArtifactRepository(workspace, store)
+    index = SQLiteArtifactIndex(workspace.index_path)
+    modeling = ModelCallService(
+        FilesystemProtocolRepository(workspace.root),
+        ContextCompiler(artifacts, index),
+        FilesystemModelCache(workspace),
+        DeterministicMockGateway(),
+    )
     return RunService(
         FilesystemRunRepository(workspace),
-        FilesystemArtifactRepository(workspace, store),
-        SQLiteArtifactIndex(workspace.index_path),
+        artifacts,
+        index,
         workspace.workspace_id,
         fault_injector,
+        modeling,
     )
+
+
+def open_protocol_workspace(root: Path) -> FilesystemProtocolRepository:
+    workspace = WorkspaceStore().open(root)
+    return FilesystemProtocolRepository(workspace.root)
 
 
 @contextmanager

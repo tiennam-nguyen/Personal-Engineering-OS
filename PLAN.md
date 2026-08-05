@@ -102,3 +102,26 @@ boundaries is unknown; the hash chain detects accidental corruption, not hostile
 
 Milestone 3 frontier only: versioned protocol registry; context manifest/compiler; deterministic mock
 model gateway; request/response audit; budget and cache contracts.
+
+## Milestone 3 — protocol registry and deterministic mock workflow
+
+Status: `GREEN` in the uncommitted working tree, subject to the final verification transcript.
+
+Delivered the strict protocol registry, verified-context compiler, structured model contracts,
+mock-only route, labeled accounting and budgets, hashed derived cache, immutable call audits, model
+journal events, canonical-first workflow, inspect/verify, protocol CLI, bypass, and resume without
+repeating a committed call. Added focused protocol, context, contracts, budget, mock, cache, and
+workflow tests.
+
+CLI evidence: protocol hash `sha256:e3413a67718d47e69a3cfbb2f30c33d5e38bccf3be496f1010fe283abafffa73`;
+miss `run_8ea39d263b864b2394c382a6ce62ad3f` called once; equivalent hit
+`run_b5221369686a4fd1a535a2ceff94fd57` called zero times with origin provenance; bypass
+`run_c4b73b4029904bc8948160446a14e42c` called once. Fresh stopped run
+`run_74fb2c333fbb41fa961be9bb0fa0cf0e` kept call-start count `1 -> 1` and verified output
+`art_009c9a9449fd0667b797e70b0c1ae6de`.
+
+Residual risks: mock output is not real-provider quality; mock tokens are not provider-native;
+route has no fallback; retrieval remains lexical; cache has no GC; fsync cannot prove every power
+loss boundary; hashes do not defend against a hostile workspace owner.
+
+Milestone 4 frontier only: Research Compiler vertical slice. No Milestone 4 behavior is implemented.
