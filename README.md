@@ -42,3 +42,24 @@ becomes an instruction.
 
 The only adapter is a deterministic offline mock. `mock_whitespace_v1` is not provider-native token
 usage. PEOS makes no model-quality claim, uses no provider credentials/network, and has no fallback.
+
+## Milestone 4 plain-text research
+
+Place one to four local `.txt` sources under `inbox/`, install and verify the versioned
+`research.claim-extraction@1.0.0` workspace protocol, then run:
+
+```powershell
+peos --workspace PATH research compile --question "Is it effective?" `
+  --source inbox/a.txt --source inbox/b.txt
+```
+
+Use `--stop-after-step ingest-research-inputs`, then `run inspect`, `run resume`, `run cancel`, and
+`run verify`; `--no-cache` bypasses extraction cache reads/writes. Raw bytes are preserved under
+`.peos/objects/sha256/`. Outputs are `research.question`, `research.source`, `research.claim`,
+`research.contradiction`, and `research.synthesis` artifacts.
+
+Extraction uses exact line/byte locators. A line containing invalid UTF-8 is marked unreadable and
+never replacement-decoded or sent to the mock. The deterministic grammar ignores blanks, headings,
+and question lines; standalone `not` supplies negative polarity. Contradictions require the same
+normalized key with opposing polarity. Synthesis text is recomputed from committed claims only.
+URLs, PDF, web crawling, OCR, semantic search, embeddings and real providers are unsupported.

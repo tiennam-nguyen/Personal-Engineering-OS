@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 import os
-import uuid
 from pathlib import Path
 
+from peos.adapters.filesystem.atomic import atomic_write
 from peos.adapters.filesystem.workspace import Workspace
 from peos.domain.errors import JournalCorruptionError, RunConflictError, RunNotFound
 from peos.domain.runs.events import event_mapping, verify_events
@@ -159,14 +159,8 @@ class FilesystemRunRepository:
             json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8") + b"\n",
         )
 
-    @staticmethod
-    def _write_new_bytes(path: Path, data: bytes) -> None:
-        stage = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
-        with stage.open("xb") as handle:
-            handle.write(data)
-            handle.flush()
-            os.fsync(handle.fileno())
-        if path.exists():
-            stage.unlink()
-            raise RunConflictError("Immutable run file already exists.")
-        os.replace(stage, path)
+    def _write_new_bytes(self, path: Path, data: bytes) -> None:
+        try:
+            atomic_write(self._workspace.staging_root, path, data)
+        except FileExistsError as error:
+            raise RunConflictError("Immutable run file already exists.") from error

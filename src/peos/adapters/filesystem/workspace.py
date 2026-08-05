@@ -52,6 +52,10 @@ class Workspace:
     def locks_root(self) -> Path:
         return self.operational_root / "locks"
 
+    @property
+    def objects_root(self) -> Path:
+        return self.operational_root / "objects" / "sha256"
+
 
 class WorkspaceStore:
     def initialize(self, root: Path) -> tuple[Workspace, bool]:
@@ -121,3 +125,5 @@ class WorkspaceStore:
         workspace.staging_root.mkdir(parents=True, exist_ok=True)
         workspace.runs_root.mkdir(parents=True, exist_ok=True)
         workspace.locks_root.mkdir(parents=True, exist_ok=True)
+        workspace.objects_root.mkdir(parents=True, exist_ok=True)
+        (workspace.root / "inbox").mkdir(parents=True, exist_ok=True)

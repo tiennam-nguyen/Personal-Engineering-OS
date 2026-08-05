@@ -39,6 +39,16 @@ STEP_EVENTS = {
     "model.call_completed",
     "model.response_validated",
     "model.budget_recorded",
+    "research.inputs_frozen",
+    "research.question_committed",
+    "research.source_object_committed",
+    "research.source_artifact_committed",
+    "research.source_extraction_completed",
+    "research.claim_candidates_validated",
+    "research.claims_normalized",
+    "research.contradictions_detected",
+    "research.synthesis_prepared",
+    "research.map_verified",
 }
 TERMINAL = {"run.succeeded", "run.failed", "run.cancelled"}
 PAYLOAD_KEYS = {
@@ -71,6 +81,26 @@ PAYLOAD_KEYS = {
     "model.call_completed": {"call_id", "provider_request_id"},
     "model.response_validated": {"call_id", "evidence_path", "content_hash", "response_hash"},
     "model.budget_recorded": {"call_id", "evidence_path", "content_hash", "passed"},
+    "research.inputs_frozen": {"question_hash", "source_count", "total_source_bytes"},
+    "research.question_committed": {"artifact_id", "content_hash"},
+    "research.source_object_committed": {"ordinal", "object_hash", "object_locator"},
+    "research.source_artifact_committed": {"ordinal", "artifact_id", "content_hash"},
+    "research.source_extraction_completed": {
+        "evidence_path",
+        "content_hash",
+        "readable_segments",
+        "unreadable_segments",
+    },
+    "research.claim_candidates_validated": {"evidence_path", "content_hash", "claim_count"},
+    "research.claims_normalized": {"claim_count", "merged_evidence_ref_count"},
+    "research.contradictions_detected": {"contradiction_count"},
+    "research.synthesis_prepared": {"synthesis_id", "claim_count", "contradiction_count"},
+    "research.map_verified": {
+        "evidence_path",
+        "content_hash",
+        "artifacts_verified",
+        "locators_verified",
+    },
 }
 
 
@@ -145,20 +175,22 @@ def verify_events(events: list[Event], step_ids: tuple[str, ...] | None = None) 
         if event.event_hash != sha256(event_mapping(event, include_hash=False)):
             raise JournalCorruptionError("Journal event content hash is invalid.")
         previous = event.event_hash
-        if (
-            step_ids is not None
-            and len(step_ids) == 2
-            and event.type == "step.created"
-            and event.step_id == step_ids[1]
-            and step_ids[0] not in committed_order
-        ):
-            raise JournalCorruptionError("Step 2 cannot start before step 1 commits.")
-        _replay_event(event, steps, committed_order, run_types)
+        if step_ids is not None and event.type == "step.created" and event.step_id in step_ids:
+            ordinal = step_ids.index(event.step_id)
+            if any(identifier not in committed_order for identifier in step_ids[:ordinal]):
+                raise JournalCorruptionError("Step cannot start before earlier steps commit.")
+        _replay_event(
+            event, steps, committed_order, run_types, None if step_ids is None else len(step_ids)
+        )
         terminal = event.type in TERMINAL
 
 
 def _replay_event(
-    event: Event, steps: dict[str, set[str]], committed: list[str], run_types: list[str]
+    event: Event,
+    steps: dict[str, set[str]],
+    committed: list[str],
+    run_types: list[str],
+    required_steps: int | None,
 ) -> None:
     if event.type == "run.created" and event.sequence != 1:
         raise JournalCorruptionError("run.created must be the first event.")
@@ -167,7 +199,11 @@ def _replay_event(
     if event.type == "run.started" and event.sequence != 3:
         raise JournalCorruptionError("run.started must follow run.planned.")
     if event.step_id is None:
-        if event.type in {"run.verification_started", "run.succeeded"} and len(committed) != 2:
+        if (
+            event.type in {"run.verification_started", "run.succeeded"}
+            and required_steps is not None
+            and len(committed) != required_steps
+        ):
             raise JournalCorruptionError("Run cannot verify or succeed before both steps commit.")
         if event.type == "run.succeeded" and "run.verification_started" not in run_types:
             raise JournalCorruptionError("Run cannot succeed before verification.")
@@ -184,7 +220,7 @@ def _replay_event(
         "step.verification_started": "step.output_staged",
         "step.verification_completed": "step.verification_started",
         "step.commit_started": "step.output_staged",
-        "artifact.canonical_committed": "step.commit_started",
+        "artifact.canonical_committed": "step.execution_started",
         "artifact.projected": "artifact.canonical_committed",
         "step.committed": "step.verification_completed",
         "protocol.loaded": "step.execution_started",
@@ -196,11 +232,27 @@ def _replay_event(
         "model.call_completed": "model.call_started",
         "model.response_validated": "model.request_compiled",
         "model.budget_recorded": "model.response_validated",
+        "research.inputs_frozen": "step.execution_started",
+        "research.question_committed": "research.inputs_frozen",
+        "research.source_object_committed": "research.question_committed",
+        "research.source_artifact_committed": "research.source_object_committed",
+        "research.source_extraction_completed": "research.source_artifact_committed",
+        "research.claim_candidates_validated": "step.execution_started",
+        "research.claims_normalized": "research.claim_candidates_validated",
+        "research.contradictions_detected": "research.claims_normalized",
+        "research.synthesis_prepared": "step.execution_started",
+        "research.map_verified": "research.synthesis_prepared",
     }
     required = requirements.get(event.type)
     if required is not None and required not in seen:
         raise JournalCorruptionError("Illegal step lifecycle transition.")
-    if event.type in seen:
+    repeatable = {
+        "artifact.canonical_committed",
+        "artifact.projected",
+        "research.source_object_committed",
+        "research.source_artifact_committed",
+    }
+    if event.type in seen and event.type not in repeatable:
         raise JournalCorruptionError("Duplicate durable step transition.")
     if event.type == "model.cache_hit" and "model.cache_miss" in seen:
         raise JournalCorruptionError("Model step cannot be both cache hit and miss.")

@@ -125,3 +125,26 @@ route has no fallback; retrieval remains lexical; cache has no GC; fsync cannot 
 loss boundary; hashes do not defend against a hostile workspace owner.
 
 Milestone 4 frontier only: Research Compiler vertical slice. No Milestone 4 behavior is implemented.
+
+## Milestone 4 — plain-text Research Compiler
+
+Status: `GREEN` in the uncommitted working tree, subject to the final verification transcript.
+
+Delivered `research.compile-plain-text@1.0.0`, immutable raw source objects, five research artifact
+types, strict payloads/links, exact UTF-8 line coverage, deterministic claim extraction,
+same-key/polarity evidence merging, opposite-polarity contradictions, traceable synthesis, research
+events/evidence, ordered canonical-first commits, inbox-independent resume, cancellation, cache
+reuse/bypass, inspect/verify, search and rebuild support, and JSON CLI.
+
+Acceptance evidence: run `run_f856e26728e845b2b9c4510ba8a95fc9` preserved four objects, produced
+10 research artifacts, recorded five readable and one unreadable segment, merged the two positive
+locators, retained one negative locator, produced one contradiction, and verified before and after a
+10-artifact SQLite rebuild. Equivalent extraction was a cache hit with zero calls; bypass called
+once. Resume run `run_8db2c13c2ed54f90a2b6f7cb5caa7ffd` succeeded after inbox deletion,
+kept source artifact bytes unchanged, and retained ingest execution count one.
+
+Residual risks: the line grammar is deliberately narrow; contradiction detection handles only
+shared normalized keys and standalone `not`; locators are line-only; invalid UTF-8 excludes a whole
+line; no source weighting, human promotion, semantic retrieval, or object GC exists.
+
+Milestone 5 frontier only: Project Compiler vertical slice. No Milestone 5 behavior exists.

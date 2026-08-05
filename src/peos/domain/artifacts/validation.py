@@ -11,7 +11,16 @@ from peos.domain.errors import ValidationError
 WORKSPACE_ID_PATTERN = re.compile(r"^ws_[0-9a-f]{32}$")
 ARTIFACT_ID_PATTERN = re.compile(r"^art_[0-9a-f]{32}$")
 CONTENT_HASH_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
-ARTIFACT_TYPE = "knowledge.concept"
+ARTIFACT_TYPES = frozenset(
+    {
+        "knowledge.concept",
+        "research.question",
+        "research.source",
+        "research.claim",
+        "research.contradiction",
+        "research.synthesis",
+    }
+)
 SCHEMA_VERSION = 1
 _ENVELOPE_FIELDS = (
     "id",
@@ -31,6 +40,7 @@ _ENVELOPE_FIELDS = (
 )
 _STATUSES = frozenset({"draft", "reviewed", "accepted", "superseded", "rejected"})
 _SENSITIVITIES = frozenset({"private", "confidential", "public"})
+_RELATIONS = frozenset({"derived_from", "supports", "contradicts", "references", "produced_by"})
 
 
 def normalize_body(body: str) -> str:
@@ -76,8 +86,8 @@ def validate_artifact(
     validate_workspace_id(artifact.workspace_id)
     if expected_workspace_id is not None and artifact.workspace_id != expected_workspace_id:
         raise ValidationError("Artifact workspace ID does not match the active workspace.")
-    if artifact.type != ARTIFACT_TYPE or artifact.schema_version != SCHEMA_VERSION:
-        raise ValidationError("Only knowledge.concept schema version 1 is supported.")
+    if artifact.type not in ARTIFACT_TYPES or artifact.schema_version != SCHEMA_VERSION:
+        raise ValidationError("Artifact type or schema version is unsupported.")
     if not isinstance(artifact.title, str) or not artifact.title.strip():
         raise ValidationError("Artifact title must contain non-whitespace text.")
     if artifact.status not in _STATUSES:
@@ -91,8 +101,24 @@ def validate_artifact(
     for author in artifact.authors:
         if author.kind not in {"human", "system"} or not author.id:
             raise ValidationError("Artifact authors are invalid.")
-    if artifact.links:
-        raise ValidationError("Links are not supported in Milestone 1.")
+    seen_links: set[tuple[str, str]] = set()
+    for link in artifact.links:
+        if not isinstance(link, dict) or set(link) != {"rel", "target"}:
+            raise ValidationError("Artifact link fields are invalid.")
+        rel, target = link["rel"], link["target"]
+        if rel not in _RELATIONS or not isinstance(target, str):
+            raise ValidationError("Artifact relation is invalid.")
+        validate_artifact_id(target)
+        key = (str(rel), target)
+        if key in seen_links:
+            raise ValidationError("Duplicate artifact links are invalid.")
+        seen_links.add(key)
+    if artifact.type == "knowledge.concept" and artifact.payload is not None:
+        raise ValidationError("Knowledge concepts do not accept a payload.")
+    if artifact.type.startswith("research."):
+        from peos.domain.research.artifacts import validate_research_payload
+
+        validate_research_payload(artifact.type, artifact.payload)
     provenance = artifact.provenance
     if provenance.producer == "human":
         if (
@@ -106,9 +132,8 @@ def validate_artifact(
             r"run_[0-9a-f]{32}", provenance.run_id
         ):
             raise ValidationError("System provenance run ID is invalid.")
-        if (
-            not any(author.kind == "system" for author in artifact.authors)
-            or not provenance.source_refs
+        if not any(author.kind == "system" for author in artifact.authors) or (
+            not provenance.source_refs and artifact.type != "research.question"
         ):
             raise ValidationError("System provenance requires a system author and sources.")
         for source in provenance.source_refs:
@@ -141,7 +166,11 @@ def validate_artifact(
 
 
 def artifact_from_mapping(data: object, body: str) -> Artifact:
-    if not isinstance(data, dict) or set(data) != set(_ENVELOPE_FIELDS):
+    fields = set(data) if isinstance(data, dict) else set()
+    if not isinstance(data, dict) or fields not in (
+        set(_ENVELOPE_FIELDS),
+        set(_ENVELOPE_FIELDS) | {"payload"},
+    ):
         raise ValidationError("Artifact envelope fields are invalid.")
     authors = data["authors"]
     provenance = data["provenance"]
@@ -178,12 +207,13 @@ def artifact_from_mapping(data: object, body: str) -> Artifact:
         ),
         content_hash=integrity["content_hash"],
         body=body,
+        payload=data.get("payload"),
     )
     return validate_artifact(artifact)
 
 
 def envelope_without_integrity(artifact: Artifact) -> dict[str, object]:
-    return {
+    result: dict[str, object] = {
         "id": artifact.id,
         "type": artifact.type,
         "schema_version": artifact.schema_version,
@@ -202,3 +232,6 @@ def envelope_without_integrity(artifact: Artifact) -> dict[str, object]:
             "source_refs": list(artifact.provenance.source_refs),
         },
     }
+    if artifact.payload is not None:
+        result["payload"] = artifact.payload
+    return result

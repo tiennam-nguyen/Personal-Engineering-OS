@@ -72,3 +72,15 @@ equivalent hit with zero call events, `--no-cache`, and stopped-step resume.
 
 The final gate includes normal mypy, `uv run --locked mypy --platform linux`,
 `uv run --locked mypy --platform win32`, both Python and locked pytest, and collect-only inventory.
+
+## Research Compiler verification
+
+Run research artifact, extraction, normalization, synthesis, object-store, mock extractor,
+workflow, resume, cancellation, CLI, event and architecture tests. Invalid UTF-8 fixtures must be
+written as raw bytes, never through replacement decoding. The acceptance fixture uses LF and CRLF
+for the two semantically identical supporting sources so their required raw hashes remain distinct.
+
+The real smoke must verify source objects/locators, merged evidence, contradiction and synthesis;
+delete and rebuild only the derived SQLite index; then demonstrate inbox-independent resume,
+cache hit with zero calls, and `--no-cache`. Finish with the complete normal/Linux/Windows mypy,
+Python/locked pytest, Ruff and lockfile sequence.

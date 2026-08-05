@@ -66,6 +66,7 @@ def enforce_budget(
     *,
     provider_calls: int,
     context_bytes: int,
+    untrusted_source_bytes: int = 0,
     response: ModelResponse | None = None,
     wall_seconds: float = 0.0,
 ) -> dict[str, object]:
@@ -73,6 +74,7 @@ def enforce_budget(
     checks = {
         "provider calls": provider_calls <= budget.max_calls,
         "context bytes": context_bytes <= budget.max_context_bytes,
+        "untrusted source bytes": untrusted_source_bytes <= budget.max_untrusted_source_bytes,
         "input tokens": usage is None or usage.input_tokens <= budget.max_input_tokens,
         "output tokens": usage is None or usage.output_tokens <= budget.max_output_tokens,
         "output bytes": usage is None or usage.output_bytes <= budget.max_output_bytes,
@@ -86,6 +88,7 @@ def enforce_budget(
         "provider_calls": provider_calls,
         "cache_hit_count": 1 if provider_calls == 0 and response is not None else 0,
         "context_bytes": context_bytes,
+        "untrusted_source_bytes": untrusted_source_bytes,
         "input_tokens": 0 if usage is None else usage.input_tokens,
         "output_tokens": 0 if usage is None else usage.output_tokens,
         "input_bytes": 0 if usage is None else usage.input_bytes,

@@ -63,3 +63,28 @@ Model evidence is below `.peos/runs/<run>/evidence/model-calls/<call>/`; cache b
 `.peos/cache/model/` is hashed workspace-local derived state. Miss calls the mock once; hit retains
 origin provenance and emits no call events; bypass neither reads nor writes cache. There is no real
 provider, network, fallback, retry, semantic retrieval, summary substitution, or cache GC.
+
+## Milestone 4 Research Compiler topology
+
+- `domain/research/model.py` owns source locators and claim values;
+  `extraction.py:extract_plain_text` preserves exact line/byte offsets and records invalid UTF-8;
+  `claims.py:normalize_claims` performs exact `not`-polarity deduplication and contradiction keys;
+  `synthesis.py:synthesis_body` emits only committed claim propositions.
+- `domain/artifacts/model.py:Artifact.payload` is optional and omitted from legacy canonical bytes.
+  Research payloads and links are strictly validated in `domain/research/artifacts.py` and
+  `domain/artifacts/validation.py`.
+- `ports/source_object_store.py:SourceObjectStore` points outward to
+  `adapters/filesystem/source_object_store.py:FilesystemSourceObjectStore`. Raw source objects under
+  `.peos/objects/sha256/` are canonical immutable evidence; SQLite remains derived.
+- `application/research.py:ResearchService` freezes inbox inputs, commits question/sources, sends
+  readable lines only through untrusted source blocks, normalizes the mock output, then commits
+  claims, contradictions, and synthesis in deterministic order. Resume after committed ingestion
+  reads objects/evidence, not inbox files.
+- `workflows/research.py:WORKFLOW` is the fixed three-step `research.compile-plain-text@1.0.0` flow.
+  Bootstrap wires concrete storage and the existing deterministic mock boundary; CLI exposes only
+  local `.txt` compilation and generic run lifecycle commands.
+
+Research canonical ownership is split between raw content-addressed objects and canonical Markdown
+artifacts. Run/model evidence and cache remain operational/derived. Locators are line-only; invalid
+UTF-8 makes the entire line unreadable. There is no URL, PDF, OCR, semantic retrieval, graph
+traversal, real provider, or Project Compiler.

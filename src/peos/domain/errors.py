@@ -186,3 +186,70 @@ class ModelAuditError(PeosError):
 class BudgetExceeded(PeosError):
     code = "budget_exceeded"
     exit_code = 4
+
+
+class ResearchInputError(PeosError):
+    code = "research_input_error"
+    exit_code = 2
+
+
+class SourcePathViolation(ResearchInputError):
+    code = "source_path_violation"
+
+
+class SourceFileTooLarge(ResearchInputError):
+    code = "source_file_too_large"
+
+
+class DuplicateSourceInput(ResearchInputError):
+    code = "duplicate_source_input"
+
+
+class SourceRevisionMismatch(PeosError):
+    code = "source_revision_mismatch"
+    exit_code = 4
+
+
+class SourceObjectCorruption(PeosError):
+    code = "source_object_corruption"
+    exit_code = 4
+
+
+class SourceExtractionError(PeosError):
+    code = "source_extraction_error"
+    exit_code = 4
+
+
+class SourceLocatorError(PeosError):
+    code = "source_locator_error"
+    exit_code = 4
+
+
+class CandidateClaimValidationError(PeosError):
+    code = "candidate_claim_validation_error"
+    exit_code = 4
+
+
+class ClaimNormalizationError(PeosError):
+    code = "claim_normalization_error"
+    exit_code = 4
+
+
+class ContradictionValidationError(PeosError):
+    code = "contradiction_validation_error"
+    exit_code = 4
+
+
+class SynthesisTraceabilityError(PeosError):
+    code = "synthesis_traceability_error"
+    exit_code = 4
+
+
+class ResearchMapConflict(PeosError):
+    code = "research_map_conflict"
+    exit_code = 4
+
+
+class ResearchVerificationError(PeosError):
+    code = "research_verification_error"
+    exit_code = 4

@@ -12,6 +12,8 @@ from peos.bootstrap import (
     initialize_workspace,
     mutation_lock,
     open_protocol_workspace,
+    open_research_workspace,
+    open_run_for_id,
     open_run_workspace,
     open_workspace,
 )
@@ -65,6 +67,17 @@ def _parser() -> argparse.ArgumentParser:
     cancel.add_argument("run_id")
     verify_run = run.add_parser("verify")
     verify_run.add_argument("run_id")
+    research = commands.add_parser("research").add_subparsers(
+        dest="research_command", required=True
+    )
+    compile_research = research.add_parser("compile")
+    compile_research.add_argument("--question", required=True)
+    compile_research.add_argument("--source", action="append", required=True)
+    compile_research.add_argument(
+        "--stop-after-step",
+        choices=["ingest-research-inputs", "extract-candidate-claims"],
+    )
+    compile_research.add_argument("--no-cache", action="store_true")
     return parser
 
 
@@ -185,9 +198,19 @@ def main(argv: list[str] | None = None) -> int:
                 }
             )
             return 0
+        if arguments.command == "research" and arguments.research_command == "compile":
+            with mutation_lock(workspace, "research compile"):
+                result = open_research_workspace(workspace).start(
+                    arguments.question,
+                    arguments.source,
+                    arguments.stop_after_step,
+                    arguments.no_cache,
+                )
+            _emit(result)
+            return 0
         if arguments.command == "run":
-            runs = open_run_workspace(workspace)
             if arguments.run_command == "start":
+                runs = open_run_workspace(workspace)
                 with mutation_lock(workspace, "run start"):
                     result = runs.start(
                         arguments.workflow,
@@ -198,20 +221,24 @@ def main(argv: list[str] | None = None) -> int:
                 _emit(result)
                 return 0
             if arguments.run_command == "inspect":
-                _emit(runs.inspect(arguments.run_id))
+                selected_runs = open_run_for_id(workspace, arguments.run_id)
+                _emit(selected_runs.inspect(arguments.run_id))
                 return 0
             if arguments.run_command == "resume":
+                selected_runs = open_run_for_id(workspace, arguments.run_id)
                 with mutation_lock(workspace, "run resume"):
-                    result = runs.resume(arguments.run_id)
+                    result = selected_runs.resume(arguments.run_id)
                 _emit(result)
                 return 0
             if arguments.run_command == "cancel":
+                selected_runs = open_run_for_id(workspace, arguments.run_id)
                 with mutation_lock(workspace, "run cancel"):
-                    result = runs.cancel(arguments.run_id)
+                    result = selected_runs.cancel(arguments.run_id)
                 _emit(result)
                 return 0
             if arguments.run_command == "verify":
-                _emit(runs.verify(arguments.run_id))
+                selected_runs = open_run_for_id(workspace, arguments.run_id)
+                _emit(selected_runs.verify(arguments.run_id))
                 return 0
         parser.error("Unknown command.")
     except PeosError as error:

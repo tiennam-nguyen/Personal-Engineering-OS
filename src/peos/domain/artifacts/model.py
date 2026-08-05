@@ -35,6 +35,7 @@ class Artifact:
     provenance: Provenance
     content_hash: str | None
     body: str
+    payload: dict[str, object] | None = None
 
 
 @dataclass(frozen=True)

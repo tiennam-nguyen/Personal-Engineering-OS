@@ -10,6 +10,7 @@ from peos.adapters.filesystem.model_cache import FilesystemModelCache
 from peos.adapters.filesystem.protocol_repository import FilesystemProtocolRepository
 from peos.adapters.filesystem.repository import FilesystemArtifactRepository
 from peos.adapters.filesystem.run_repository import FilesystemRunRepository
+from peos.adapters.filesystem.source_object_store import FilesystemSourceObjectStore
 from peos.adapters.filesystem.workspace import WorkspaceStore
 from peos.adapters.filesystem.workspace_lock import WorkspaceLock
 from peos.adapters.models.mock import DeterministicMockGateway
@@ -18,6 +19,7 @@ from peos.application.artifacts import ArtifactService
 from peos.application.context import ContextCompiler
 from peos.application.indexing import IndexingService
 from peos.application.modeling import ModelCallService
+from peos.application.research import ResearchService
 from peos.application.runs import RunService
 from peos.ports.fault_injector import FaultInjector
 
@@ -70,6 +72,36 @@ def open_run_workspace(root: Path, fault_injector: FaultInjector | None = None) 
 def open_protocol_workspace(root: Path) -> FilesystemProtocolRepository:
     workspace = WorkspaceStore().open(root)
     return FilesystemProtocolRepository(workspace.root)
+
+
+def open_research_workspace(
+    root: Path, fault_injector: FaultInjector | None = None
+) -> ResearchService:
+    store = WorkspaceStore()
+    workspace = store.open(root)
+    artifacts = FilesystemArtifactRepository(workspace, store)
+    index = SQLiteArtifactIndex(workspace.index_path)
+    return ResearchService(
+        workspace.root,
+        workspace.workspace_id,
+        FilesystemRunRepository(workspace),
+        artifacts,
+        index,
+        FilesystemSourceObjectStore(workspace),
+        FilesystemProtocolRepository(workspace.root),
+        FilesystemModelCache(workspace),
+        DeterministicMockGateway(),
+        fault_injector,
+    )
+
+
+def open_run_for_id(root: Path, run_id: str) -> RunService | ResearchService:
+    workspace = WorkspaceStore().open(root)
+    manifest = FilesystemRunRepository(workspace).read_manifest(run_id)
+    workflow = manifest.get("workflow")
+    if isinstance(workflow, dict) and workflow.get("name") == "research.compile-plain-text":
+        return open_research_workspace(root)
+    return open_run_workspace(root)
 
 
 @contextmanager

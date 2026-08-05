@@ -60,7 +60,7 @@ def prepare(input_artifact: Artifact, run_id: str, created_at: str) -> Artifact:
 
 
 def artifact_data(artifact: Artifact) -> dict[str, object]:
-    return {
+    result: dict[str, object] = {
         "id": artifact.id,
         "type": artifact.type,
         "schema_version": artifact.schema_version,
@@ -80,6 +80,9 @@ def artifact_data(artifact: Artifact) -> dict[str, object]:
         },
         "body": artifact.body,
     }
+    if artifact.payload is not None:
+        result["payload"] = artifact.payload
+    return result
 
 
 def verify_prepared(
