@@ -44,12 +44,20 @@ no destructive PEOS operation is introduced.
 - [RAN] `python -m pytest` in `.venv` -> `4 passed in 0.04s`.
 - [RAN] `uv run --locked pytest` -> `4 passed in 0.03s`.
 
-## Milestone 1 frontier
+## Milestone 1 — artifact round trip
 
-Implement only the artifact round trip: workspace initialization, one typed artifact, atomic
-canonical write, SQLite projection, exact lookup, lexical search, independent hash verification,
-and rebuild-after-index-deletion. Required failure cases: malformed artifact, duplicate ID, and
-projection failure after canonical commit.
+Status: `COMPLETE` pending final packet verification transcript.
+
+Delivered: one `knowledge.concept` schema; Markdown/YAML canonical files; independent SHA-256
+verification; atomic staging; SQLite projection; exact lookup; lexical search; dirty-index marker;
+rebuild; argparse CLI; integration coverage.
+
+Residual risks: single-writer only; best-effort durability only; LIKE search is intentionally
+simple.
+
+## Milestone 2 frontier
+
+Implement deterministic run journaling and resumable workflows. Do not begin it in this change.
 
 ## Stop conditions
 

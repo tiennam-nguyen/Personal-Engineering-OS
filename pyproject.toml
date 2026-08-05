@@ -4,7 +4,12 @@ version = "0.0.0"
 description = "Personal Engineering OS"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pyyaml>=6,<7",
+]
+
+[project.scripts]
+peos = "peos.cli.main:main"
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]

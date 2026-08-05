@@ -1,0 +1,23 @@
+"""Canonical artifact storage contract."""
+
+from __future__ import annotations
+
+from typing import Protocol
+
+from peos.domain.artifacts.model import Artifact, StoredArtifact
+
+
+class ArtifactRepository(Protocol):
+    def save(self, artifact: Artifact) -> StoredArtifact: ...
+
+    def read(self, canonical_path: str) -> StoredArtifact: ...
+
+    def verify(self, canonical_path: str) -> StoredArtifact: ...
+
+    def scan(self) -> list[StoredArtifact]: ...
+
+    def write_index_dirty(self, stored: StoredArtifact) -> None: ...
+
+    def is_index_dirty(self) -> bool: ...
+
+    def remove_index_dirty(self) -> None: ...

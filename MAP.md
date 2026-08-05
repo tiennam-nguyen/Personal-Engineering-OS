@@ -1,58 +1,30 @@
 # Repository Map
 
-## L0 — purpose and evidence
+## L0 — purpose
 
-[READ] The governing specification is `PEOS_Architecture_Implementation_Spec_v0.1.md`, read in
-full before this constitution was created. PEOS is planned as a local-first, single-user,
-offline-capable Python modular monolith. Its canonical intellectual state must remain independent
-of providers, SQLite, and a context window.
+PEOS preserves durable intellectual work independently of providers and the SQLite projection.
 
-[READ] Repository state at constitution start: an empty Git worktree with no commits and no
-existing package or manifest.
+## L1 — modules
 
-## L1 — current topology
+`domain` contains pure values, validation, and typed errors. `ports` holds canonical repository
+and derived-index contracts. `application` orchestrates create, lookup, search, verification, and
+rebuild. Filesystem and SQLite adapters implement the ports. `bootstrap` wires adapters; the CLI
+only parses arguments and renders JSON.
 
-```text
-pyproject.toml              project metadata and quality-tool configuration
-src/peos/__init__.py        package marker; no runtime behavior
-tests/unit/test_architecture.py
-                            dependency-direction architecture guard
-adr/                        durable decisions and ADR template
-.github/workflows/ci.yml    CI quality gates
-MAP.md / PLAN.md            recovery-oriented project state
-```
+## L2 — Milestone 1 flows
 
-Directories named in the specification but not needed for Milestone 0 (`application`, `domain`,
-`ports`, `adapters`, `workflows`, `protocols`, `evals`, and artifact storage) are deliberately
-absent. Their absence prevents a false claim that Milestone 1 or later behavior exists.
+Create: `ArtifactService.create_concept` validates →
+`FilesystemArtifactRepository.save` atomically writes and rereads canonical bytes → SQLite upsert.
+On upsert failure, canonical data remains and `.peos/INDEX_DIRTY` is written.
 
-## L2 — dependency direction (planned contract)
+Lookup: SQLite yields path/hash → filesystem rereads and independently verifies canonical bytes.
+Canonical files win on any divergence.
 
-```text
-cli -> application -> domain
-                 -> ports <- adapters
-workflows -> application, domain, ports
-bootstrap composes adapters at the edge
-```
+Rebuild: canonical scan/verification → side SQLite database → swap after closed connections.
 
-`domain` never depends on an adapter, CLI, database, filesystem package, or model SDK. Cross-
-workflow communication will use artifacts and application services, never direct workflow calls.
+## Ownership and limitations
 
-## L3 — entry points and verification
-
-[READ] There is no PEOS runtime entry point in this milestone.
-
-[RAN] The architecture guard is collected by pytest: `4 passed in 0.04s`. The full toolchain
-transcript is recorded in `PLAN.md`.
-
-## Invariants carried forward
-
-- Canonical files, not SQLite or caches, own durable state.
-- IDs are opaque and path-independent; provenance is mandatory from the first artifact release.
-- Canonical writes must be atomic or recovery-manifested; destructive actions need dry run,
-  approval, and a verified recovery path.
-- Imported material is data, never executable instruction authority; secrets do not enter normal
-  artifacts or logs.
-- Model outputs start as drafts and cannot be their own only verifier.
-- Workflows remain typed code; configuration cannot become a general expression language.
-- A cold-started maintainer can continue from repository artifacts alone.
+Canonical state is `artifacts/knowledge/*.md`; `.peos/index.sqlite3` is derived state. One writer
+per workspace is assumed. `os.replace` provides same-filesystem atomic visibility and file `fsync`
+is best-effort durability; power-loss guarantees are not claimed. SQLite LIKE search is offline but
+not a 50,000-artifact performance claim.
