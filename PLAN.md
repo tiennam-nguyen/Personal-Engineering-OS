@@ -235,7 +235,10 @@ Milestone 5 frontier only: Project Compiler vertical slice. No Milestone 5 behav
 
 ## Milestone 8 — evaluation and routing qualification
 
-Status: `GREEN` in the working tree, pending final commit-SHA CI verification.
+Status: `GREEN`. Implementation commit `4fb18a68c8ef227fe3c5a0a41e3ba5c722b728d0` passed
+GitHub Actions run `31319661581` (`quality`, success). The final local gate recorded 183 tests in
+both bare-Python and locked environments, 168 mypy source files on normal/Linux/Windows targets,
+188 Ruff-formatted files, and a 183-test collect-only inventory.
 
 Delivered committed static qualification suites for all three production model tasks, exact
 route/suite/protocol/schema authorization, deterministic and reference scoring, canonical eval
