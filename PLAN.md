@@ -2,8 +2,8 @@
 
 ## Milestone 7 — Cross-Workflow Graph
 
-State: implementation, real local smokes, and complete local gate GREEN; commit/push and exact-SHA
-CI observation remain pending.
+State: implementation commit promoted; final documentation commit and exact-SHA CI observation
+remain pending.
 
 - Baseline: M6 final SHA `a5f1ac9d1517befc44b590b299073d47920dd1b7`, clean `main`, 139
   tests collected, baseline locked pytest exit 0; GitHub Actions run `31309992295` independently
@@ -33,7 +33,9 @@ CI observation remain pending.
   explicit rebuild; traversal is structural rather than semantic; reported failures remain
   externally asserted evidence.
 - Assumptions: none added.
-- Remote CI: `[UNKNOWN]` until the M7 implementation commit is pushed and observed.
+- Remote CI: implementation commit `527c9f4e9e102b68bd4948ba6fe0ebbf90576c5f` was observed GREEN
+  in GitHub Actions run `31312382881`; the quality job completed in 51 seconds after locked sync,
+  Ruff format/check, mypy, and locked pytest all succeeded.
 - Milestone 8 frontier: Evaluation and Routing Qualification only after M7 promotion.
 
 ## Milestone 6 — Learning Compiler
