@@ -11,6 +11,8 @@ from pathlib import Path
 from peos.bootstrap import (
     initialize_workspace,
     mutation_lock,
+    open_crossflow_workspace,
+    open_graph_workspace,
     open_learning_workspace,
     open_project_workspace,
     open_protocol_workspace,
@@ -104,6 +106,15 @@ def _parser() -> argparse.ArgumentParser:
     learn_attempt = learn.add_parser("attempt")
     learn_attempt.add_argument("--goal", required=True)
     learn_attempt.add_argument("--attempt-file", required=True)
+    graph = commands.add_parser("graph")
+    graph.add_argument("artifact_id")
+    graph.add_argument("--depth", type=int, default=1)
+    crossflow = commands.add_parser("crossflow").add_subparsers(
+        dest="crossflow_command", required=True
+    )
+    bridge = crossflow.add_parser("bridge")
+    bridge.add_argument("--request-file", required=True)
+    bridge.add_argument("--stop-after-step", choices=["resolve-crossflow-inputs"])
     return parser
 
 
@@ -272,6 +283,16 @@ def main(argv: list[str] | None = None) -> int:
                     result = learning.start_attempt(arguments.goal, Path(arguments.attempt_file))
                 _emit(result)
                 return 0
+        if arguments.command == "graph":
+            _emit(open_graph_workspace(workspace).traverse(arguments.artifact_id, arguments.depth))
+            return 0
+        if arguments.command == "crossflow" and arguments.crossflow_command == "bridge":
+            with mutation_lock(workspace, "crossflow bridge"):
+                result = open_crossflow_workspace(workspace).start(
+                    Path(arguments.request_file), arguments.stop_after_step
+                )
+            _emit(result)
+            return 0
         if arguments.command == "run":
             if arguments.run_command == "start":
                 runs = open_run_workspace(workspace)

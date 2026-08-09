@@ -1,5 +1,30 @@
 # Repository Map
 
+## Milestone 7 Cross-Workflow Graph
+
+- Relation truth: `domain/relations/model.py:materialize_links` parses strict outgoing/incoming
+  metadata and produces one deterministic `RelationEdge`; logical identity excludes its canonical
+  host provenance.
+- Projection: `ports/relation_index.py:RelationIndex` exposes adjacency only;
+  `adapters/sqlite/artifact_index.py:SQLiteArtifactIndex` commits artifact and hosted relation rows
+  together and rebuilds them from canonical Markdown.
+- Read path: `application/graph.py:GraphService.traverse` walks both directions, verifies host hash,
+  rematerializes canonical links, verifies endpoints, terminates cycles, and never mutates.
+- Bridge: `domain/crossflow/model.py:parse_request` owns the three strict requests;
+  `workflows/crossflow.py:WORKFLOW` fixes the two-step `crossflow.bridge@1.0.0` flow;
+  `application/crossflow.py:CrossflowService` freezes, derives, commits, recovers, cancels, and
+  independently verifies exactly one target.
+- Project failure→exercise: reported packet failure deterministically creates `learning.exercise`
+  with `derived_from` to the exact packet and an existing exact-text verifier contract.
+- Claim→ADR: a SUPPORTED claim becomes an incoming-hosted `supports` edge to `project.adr`; the ADR
+  also references the exact charter. Neither historical source is rewritten.
+- Gap→question: an exact nested unresolved M6 gap creates `research.question` with `derived_from`
+  to the exact learning goal; mastery remains untouched.
+- Boundary: `bootstrap.py` wires filesystem/SQLite implementations; `cli/main.py` exposes read-only
+  `graph` and locked `crossflow bridge`. SQLite schema v2 remains disposable derived state.
+- Limits: no manual editor/unlink, inverse edge, graph database, ranking, semantic inference,
+  model call, project.failure/learning.gap/graph-edge artifact, or Milestone 8 evaluation behavior.
+
 ## Milestone 6 Learning Compiler
 
 - Domain: `src/peos/domain/learning/model.py` owns strict goal, diagnostic, exercise, and attempt

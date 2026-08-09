@@ -1,5 +1,24 @@
 # PEOS
 
+## Cross-Workflow Graph (Milestone 7)
+
+```text
+peos --workspace WORKSPACE crossflow bridge --request-file REQUEST.json
+peos --workspace WORKSPACE graph ARTIFACT_ID --depth 1
+```
+
+Cross-workflow relations live once in canonical artifact metadata. Legacy `{rel,target}` links are
+outgoing; a newly created target may host `{source,rel}` so historical sources remain byte-stable.
+Reverse navigation returns the same directed edge rather than persisting an inverse relation.
+SQLite stores only rebuildable adjacency/backlinks with canonical-host revisions, and every graph
+row is checked against its canonical host before use.
+
+The deterministic bridge supports exactly: reported project failure→`learning.exercise`, SUPPORTED
+research claim→`project.adr`, and exact learning gap→`research.question`. No model chooses links;
+project failures remain reported rather than PEOS-executed evidence. Deleting the derived index and
+running `index rebuild` restores graph traversal. There is no arbitrary graph editor, semantic
+relation inference, graph database, crossflow model call, or evaluation framework in Milestone 7.
+
 ## Learning Compiler (Milestone 6)
 
 Learning Compiler deterministically turns a strict capability goal and diagnostic fixture into a

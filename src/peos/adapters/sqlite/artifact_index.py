@@ -13,6 +13,7 @@ from peos.domain.errors import (
     IndexRebuildError,
     WorkspaceConfigurationError,
 )
+from peos.domain.relations.model import RelationEdge, materialize_links
 
 SCHEMA = """
 CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -32,6 +33,16 @@ CREATE TABLE artifact (
     body_text TEXT NOT NULL,
     search_text TEXT NOT NULL
 );
+CREATE TABLE relation (
+    source_artifact_id TEXT NOT NULL,
+    relation TEXT NOT NULL,
+    target_artifact_id TEXT NOT NULL,
+    host_artifact_id TEXT NOT NULL,
+    host_revision TEXT NOT NULL,
+    UNIQUE(source_artifact_id, relation, target_artifact_id)
+);
+CREATE INDEX relation_source ON relation(source_artifact_id);
+CREATE INDEX relation_target ON relation(target_artifact_id);
 """
 
 
@@ -54,6 +65,7 @@ class SQLiteArtifactIndex:
             try:
                 self._validate_schema(connection)
                 self._insert(connection, stored)
+                self._insert_relations(connection, stored)
                 connection.commit()
             finally:
                 connection.close()
@@ -100,16 +112,25 @@ class SQLiteArtifactIndex:
             connection.close()
         return [SearchResult(**dict(row)) for row in rows]
 
+    def outgoing(self, artifact_id: str) -> list[RelationEdge]:
+        return self._relations("source_artifact_id", artifact_id)
+
+    def incoming(self, artifact_id: str) -> list[RelationEdge]:
+        return self._relations("target_artifact_id", artifact_id)
+
     def rebuild(self, records: list[StoredArtifact]) -> int:
         temporary = self._path.with_name(f"{self._path.name}.rebuild-{uuid.uuid4().hex}")
         backup = self._path.with_name(f"{self._path.name}.backup-{uuid.uuid4().hex}")
         try:
             self._reject_duplicate_ids(records)
+            self._validate_relation_endpoints(records)
             connection = self._connect(temporary)
             try:
                 self._create_schema(connection)
                 for record in records:
                     self._insert(connection, record)
+                for record in records:
+                    self._insert_relations(connection, record)
                 count = connection.execute("SELECT COUNT(*) FROM artifact").fetchone()[0]
                 if count != len(records):
                     raise IndexRebuildError("Rebuilt index count does not match canonical count.")
@@ -160,7 +181,7 @@ class SQLiteArtifactIndex:
     def _create_schema(connection: sqlite3.Connection) -> None:
         connection.executescript(SCHEMA)
         connection.execute(
-            "INSERT INTO metadata(key, value) VALUES (?, ?)", ("schema_version", "1")
+            "INSERT INTO metadata(key, value) VALUES (?, ?)", ("schema_version", "2")
         )
 
     @staticmethod
@@ -171,7 +192,7 @@ class SQLiteArtifactIndex:
             ).fetchone()
         except sqlite3.Error as error:
             raise WorkspaceConfigurationError("Artifact index schema is unavailable.") from error
-        if row is None or row["value"] != "1":
+        if row is None or row["value"] != "2":
             raise WorkspaceConfigurationError("Artifact index schema is incompatible.")
 
     @staticmethod
@@ -206,6 +227,51 @@ class SQLiteArtifactIndex:
         ids = [record.artifact.id for record in records]
         if len(ids) != len(set(ids)):
             raise IndexRebuildError("Duplicate artifact ID encountered during rebuild.")
+
+    @staticmethod
+    def _validate_relation_endpoints(records: list[StoredArtifact]) -> None:
+        ids = {record.artifact.id for record in records}
+        for record in records:
+            for edge in materialize_links(
+                record.artifact.id, record.artifact.links, record.artifact.content_hash
+            ):
+                if edge.source_artifact_id not in ids or edge.target_artifact_id not in ids:
+                    raise IndexRebuildError("Canonical relation endpoint is missing.")
+
+    @staticmethod
+    def _insert_relations(connection: sqlite3.Connection, stored: StoredArtifact) -> None:
+        for edge in materialize_links(
+            stored.artifact.id, stored.artifact.links, stored.artifact.content_hash
+        ):
+            connection.execute(
+                """INSERT INTO relation(
+                    source_artifact_id,relation,target_artifact_id,host_artifact_id,host_revision
+                ) VALUES(?,?,?,?,?)""",
+                (
+                    edge.source_artifact_id,
+                    edge.relation,
+                    edge.target_artifact_id,
+                    edge.host_artifact_id,
+                    edge.host_revision,
+                ),
+            )
+
+    def _relations(self, column: str, artifact_id: str) -> list[RelationEdge]:
+        if column not in {"source_artifact_id", "target_artifact_id"}:
+            raise ValueError("Invalid relation lookup column.")
+        connection = self._connect(self._path)
+        try:
+            self._validate_schema(connection)
+            rows = connection.execute(
+                f"""SELECT source_artifact_id,relation,target_artifact_id,
+                           host_artifact_id,host_revision
+                    FROM relation WHERE {column} = ?
+                    ORDER BY source_artifact_id,relation,target_artifact_id,host_artifact_id""",
+                (artifact_id,),
+            ).fetchall()
+        finally:
+            connection.close()
+        return [RelationEdge(**dict(row)) for row in rows]
 
     @staticmethod
     def _stored_from_row(row: sqlite3.Row) -> StoredArtifact:

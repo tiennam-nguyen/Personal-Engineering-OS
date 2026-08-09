@@ -63,6 +63,19 @@ class IndexRebuildError(PeosError):
     exit_code = 4
 
 
+class GraphProjectionDivergence(IndexDivergenceError):
+    code = "graph_projection_divergence"
+
+
+class CrossflowInputInvalid(ValidationError):
+    code = "crossflow_input_invalid"
+
+
+class CrossflowConflict(PeosError):
+    code = "crossflow_conflict"
+    exit_code = 4
+
+
 class RunNotFound(PeosError):
     code = "run_not_found"
     exit_code = 3

@@ -22,9 +22,11 @@ ARTIFACT_TYPES = frozenset(
         "project.map",
         "project.charter",
         "project.codex_packet",
+        "project.adr",
         "learning.goal",
         "learning.attempt",
         "learning.mastery",
+        "learning.exercise",
     }
 )
 SCHEMA_VERSION = 1
@@ -46,9 +48,6 @@ _ENVELOPE_FIELDS = (
 )
 _STATUSES = frozenset({"draft", "reviewed", "accepted", "superseded", "rejected"})
 _SENSITIVITIES = frozenset({"private", "confidential", "public"})
-_RELATIONS = frozenset(
-    {"derived_from", "supports", "contradicts", "references", "produced_by", "supersedes"}
-)
 
 
 def normalize_body(body: str) -> str:
@@ -109,18 +108,9 @@ def validate_artifact(
     for author in artifact.authors:
         if author.kind not in {"human", "system"} or not author.id:
             raise ValidationError("Artifact authors are invalid.")
-    seen_links: set[tuple[str, str]] = set()
-    for link in artifact.links:
-        if not isinstance(link, dict) or set(link) != {"rel", "target"}:
-            raise ValidationError("Artifact link fields are invalid.")
-        rel, target = link["rel"], link["target"]
-        if rel not in _RELATIONS or not isinstance(target, str):
-            raise ValidationError("Artifact relation is invalid.")
-        validate_artifact_id(target)
-        key = (str(rel), target)
-        if key in seen_links:
-            raise ValidationError("Duplicate artifact links are invalid.")
-        seen_links.add(key)
+    from peos.domain.relations.model import materialize_links
+
+    materialize_links(artifact.id, artifact.links, artifact.content_hash)
     if artifact.type == "knowledge.concept" and artifact.payload is not None:
         raise ValidationError("Knowledge concepts do not accept a payload.")
     if artifact.type.startswith("research."):

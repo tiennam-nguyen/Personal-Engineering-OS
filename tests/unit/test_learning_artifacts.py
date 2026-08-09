@@ -7,11 +7,12 @@ from peos.domain.errors import ValidationError
 from peos.domain.learning.artifacts import validate_learning_payload
 
 
-def test_exactly_three_learning_types_are_registered() -> None:
+def test_m6_aggregates_plus_m7_standalone_exercise_are_registered() -> None:
     assert {item for item in ARTIFACT_TYPES if item.startswith("learning.")} == {
         "learning.goal",
         "learning.attempt",
         "learning.mastery",
+        "learning.exercise",
     }
 
 

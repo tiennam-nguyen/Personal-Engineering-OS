@@ -18,6 +18,8 @@ from peos.adapters.models.mock import DeterministicMockGateway
 from peos.adapters.sqlite.artifact_index import SQLiteArtifactIndex
 from peos.application.artifacts import ArtifactService
 from peos.application.context import ContextCompiler
+from peos.application.crossflow import CrossflowService
+from peos.application.graph import GraphService
 from peos.application.indexing import IndexingService
 from peos.application.learning import LearningService
 from peos.application.modeling import ModelCallService
@@ -132,9 +134,34 @@ def open_learning_workspace(
     )
 
 
+def open_graph_workspace(root: Path) -> GraphService:
+    store = WorkspaceStore()
+    workspace = store.open(root)
+    repository = FilesystemArtifactRepository(workspace, store)
+    index = SQLiteArtifactIndex(workspace.index_path)
+    return GraphService(repository, index, index, f"peos --workspace {workspace.root}")
+
+
+def open_crossflow_workspace(
+    root: Path, fault_injector: FaultInjector | None = None
+) -> CrossflowService:
+    store = WorkspaceStore()
+    workspace = store.open(root)
+    repository = FilesystemArtifactRepository(workspace, store)
+    index = SQLiteArtifactIndex(workspace.index_path)
+    return CrossflowService(
+        workspace.workspace_id,
+        FilesystemRunRepository(workspace),
+        repository,
+        index,
+        index,
+        fault_injector,
+    )
+
+
 def open_run_for_id(
     root: Path, run_id: str
-) -> RunService | ResearchService | ProjectService | LearningService:
+) -> RunService | ResearchService | ProjectService | LearningService | CrossflowService:
     workspace = WorkspaceStore().open(root)
     manifest = FilesystemRunRepository(workspace).read_manifest(run_id)
     workflow = manifest.get("workflow")
@@ -144,6 +171,8 @@ def open_run_for_id(
         return open_project_workspace(root)
     if isinstance(workflow, dict) and str(workflow.get("name", "")).startswith("learning."):
         return open_learning_workspace(root)
+    if isinstance(workflow, dict) and workflow.get("name") == "crossflow.bridge":
+        return open_crossflow_workspace(root)
     return open_run_workspace(root)
 
 

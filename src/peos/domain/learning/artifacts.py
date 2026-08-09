@@ -32,6 +32,16 @@ _KEYS = {
         "review_recommendation",
         "derivation_policy",
     },
+    "learning.exercise": {
+        "schema_version",
+        "concept_id",
+        "concept_title",
+        "dimension",
+        "prompt",
+        "estimated_minutes",
+        "answer",
+        "origin",
+    },
 }
 
 
@@ -63,7 +73,7 @@ def validate_learning_payload(type_: str, payload: object) -> None:
             or not isinstance(payload["correct"], bool)
         ):
             raise ValidationError("Learning attempt evidence is invalid.")
-    else:
+    elif type_ == "learning.mastery":
         dimensions = payload["dimensions"]
         if not isinstance(dimensions, list) or [
             item.get("dimension") for item in dimensions if isinstance(item, dict)
@@ -88,3 +98,37 @@ def validate_learning_payload(type_: str, payload: object) -> None:
             or review["status"] != "recommended"
         ):
             raise ValidationError("Learning review recommendation is invalid.")
+    else:
+        answer, origin = payload["answer"], payload["origin"]
+        if (
+            payload["dimension"] != "application"
+            or any(
+                not isinstance(payload[key], str) or not payload[key].strip()
+                for key in ("concept_id", "concept_title", "prompt")
+            )
+            or not isinstance(payload["estimated_minutes"], int)
+            or payload["estimated_minutes"] <= 0
+            or not isinstance(answer, dict)
+            or set(answer) != {"kind", "accepted"}
+            or answer["kind"] != "exact_text"
+            or not isinstance(answer["accepted"], list)
+            or not answer["accepted"]
+            or not isinstance(origin, dict)
+            or set(origin)
+            != {
+                "kind",
+                "project_packet_id",
+                "project_packet_revision",
+                "failure_evidence_hash",
+                "verification_provenance",
+                "failed_check",
+                "expected_behavior",
+                "observed_behavior",
+                "reported_by",
+            }
+            or origin["kind"] != "project_failure"
+            or origin["verification_provenance"] != "reported"
+            or not isinstance(origin["failure_evidence_hash"], str)
+            or not origin["failure_evidence_hash"].startswith("sha256:")
+        ):
+            raise ValidationError("Standalone learning exercise payload is invalid.")

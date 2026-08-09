@@ -103,3 +103,28 @@ def test_learning_compiler_has_no_model_or_adapter_dependency() -> None:
     forbidden = ("peos.adapters", "peos.domain.models", "peos.ports.model_gateway")
     for path in learning_paths:
         assert not any(module.startswith(forbidden) for module in _imported_modules(path))
+
+
+def test_crossflow_graph_boundaries_are_storage_neutral_and_model_free() -> None:
+    paths = [
+        SOURCE_ROOT / "domain" / "relations" / "model.py",
+        SOURCE_ROOT / "domain" / "crossflow" / "model.py",
+        SOURCE_ROOT / "application" / "graph.py",
+        SOURCE_ROOT / "application" / "crossflow.py",
+        SOURCE_ROOT / "workflows" / "crossflow.py",
+    ]
+    forbidden = (
+        "peos.adapters",
+        "peos.domain.models",
+        "peos.ports.model_gateway",
+        "sqlite3",
+        "networkx",
+    )
+    for path in paths:
+        assert not any(module.startswith(forbidden) for module in _imported_modules(path))
+
+
+def test_sqlite_index_implements_relation_port_shape() -> None:
+    from peos.adapters.sqlite.artifact_index import SQLiteArtifactIndex
+
+    assert {"outgoing", "incoming"} <= set(dir(SQLiteArtifactIndex))

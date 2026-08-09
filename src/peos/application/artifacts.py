@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from peos.domain.artifacts.model import Artifact, Author, Provenance, SearchResult, StoredArtifact
 from peos.domain.artifacts.validation import validate_artifact_id
 from peos.domain.errors import IndexDirtyError, IndexDivergenceError, ProjectionUpdateError
+from peos.domain.relations.model import materialize_links
 from peos.ports.artifact_index import ArtifactIndex
 from peos.ports.artifact_repository import ArtifactRepository
 
@@ -85,7 +86,16 @@ class ArtifactService:
     def verify(self, artifact_id: str) -> StoredArtifact:
         self._require_healthy_index()
         projected = self._index.get(artifact_id)
-        return self._repository.verify(projected.canonical_path)
+        stored = self._repository.verify(projected.canonical_path)
+        canonical = {item.artifact.id: item for item in self._repository.scan()}
+        for edge in materialize_links(
+            stored.artifact.id, stored.artifact.links, stored.artifact.content_hash
+        ):
+            for endpoint in (edge.source_artifact_id, edge.target_artifact_id):
+                if endpoint not in canonical:
+                    raise IndexDivergenceError("Canonical artifact relation is dangling.")
+                self._repository.verify(canonical[endpoint].canonical_path)
+        return stored
 
     def _require_healthy_index(self) -> None:
         if self._repository.is_index_dirty() or not self._index.is_healthy():

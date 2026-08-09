@@ -1,5 +1,41 @@
 # Plan
 
+## Milestone 7 — Cross-Workflow Graph
+
+State: implementation, real local smokes, and complete local gate GREEN; commit/push and exact-SHA
+CI observation remain pending.
+
+- Baseline: M6 final SHA `a5f1ac9d1517befc44b590b299073d47920dd1b7`, clean `main`, 139
+  tests collected, baseline locked pytest exit 0; GitHub Actions run `31309992295` independently
+  observed `success` on the same SHA.
+- Surface: strict incoming/outgoing link union, deterministic hosted edges, SQLite relation
+  projection with host revision, verified bidirectional traversal, two new artifact types, one
+  three-operation crossflow workflow, frozen-input recovery, cancellation, CLI, and ADR 0014.
+- Focused evidence: Ruff/mypy GREEN on 148 source files; 19 focused relation/graph/crossflow/CLI/
+  architecture tests exited 0. Canonical-commit recovery preserved target bytes and repaired the
+  relation projection.
+- Acceptance smoke: Research, Project, and Learning sources were produced through existing
+  services. Bridge runs `run_e287f099f8114e3b8014635609982fb8`,
+  `run_f22ed279bb6842d08fbb8ec9431375af`, and
+  `run_55624f4b6f794dd783b12293056d4d2d` all verified. Six endpoint graph queries exposed identical
+  directed edge tuples in reverse navigation; depth two reached claim→ADR→charter.
+- Rebuild smoke: deleting only the derived index then rebuilding indexed 11 artifacts; graph
+  summaries before/after were equal and all three bridge runs verified afterward.
+- Recovery/cancellation: `run_212f4cfd9f4d4a21b6631691f3479839` resumed after request deletion,
+  source hash stayed unchanged, and Step 1 execution remained one in the ID-specific regression
+  assertion. Cancelled `run_4eaeeb4a0704461eba874c0208dcb7f3` verified, repeated cancel kept
+  event count `11 -> 12 -> 12`, and resume exited 4 without traceback.
+- Final local gate: `git diff --check`, `uv lock --check`, Ruff format/check, normal/Linux/Windows
+  mypy, Python pytest, locked pytest, and collect-only all exited 0. Mypy checked 148 source files;
+  Python pytest reported `148 passed in 163.79s`; locked pytest reported
+  `148 passed in 169.03s`; collect-only inventoried 148 tests.
+- Residual risks: incoming metadata is a new persisted format; SQLite can become dirty and requires
+  explicit rebuild; traversal is structural rather than semantic; reported failures remain
+  externally asserted evidence.
+- Assumptions: none added.
+- Remote CI: `[UNKNOWN]` until the M7 implementation commit is pushed and observed.
+- Milestone 8 frontier: Evaluation and Routing Qualification only after M7 promotion.
+
 ## Milestone 6 — Learning Compiler
 
 State: implementation commit promoted; final documentation commit and exact-SHA CI observation

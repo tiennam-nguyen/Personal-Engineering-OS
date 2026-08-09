@@ -1,5 +1,23 @@
 # Contributing
 
+## Cross-Workflow Graph verification
+
+```text
+uv run --locked pytest tests/unit/test_relations.py -q
+uv run --locked pytest tests/integration/test_graph.py -q
+uv run --locked pytest tests/integration/test_crossflow_workflow.py -q
+uv run --locked pytest tests/integration/test_crossflow_resume.py -q
+uv run --locked pytest tests/integration/test_crossflow_cli.py -q
+uv run --locked pytest tests/unit/test_architecture.py -q
+```
+
+The full fixture must create source artifacts through the existing Research, Project, and Learning
+services, run all three bridge operations, compare each forward/reverse edge tuple, exercise a
+depth-two chain, delete only the verified temporary workspace's SQLite index, rebuild, and compare
+the graph again. Recovery must prove frozen-request reuse and canonical target preservation;
+cancellation must prove terminal verification and idempotent event count. Finish with the complete
+Ruff, lockfile, normal/Linux/Windows mypy, Python/locked pytest, and collect-only gate.
+
 ## Learning Compiler verification
 
 ```text

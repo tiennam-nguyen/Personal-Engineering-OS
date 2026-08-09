@@ -40,6 +40,17 @@ _KEYS = {
         "forbidden_paths",
         "verification",
     },
+    "project.adr": {
+        "schema_version",
+        "decision_key",
+        "context",
+        "decision",
+        "alternatives",
+        "consequences",
+        "falsifier",
+        "project_charter_ref",
+        "supporting_claim_refs",
+    },
 }
 
 
@@ -138,11 +149,33 @@ def validate_project_payload(type_: str, payload: object, body: str) -> None:
             "assumptions",
         }:
             raise ValidationError("Walking skeleton is invalid.")
-    else:
+    elif type_ == "project.codex_packet":
         if payload["packet_format_version"] != "1.0.0" or not body.startswith(
             "# Codex Milestone Packet\n"
         ):
             raise ValidationError("Codex packet body or format is invalid.")
+    else:
+        required = ("decision_key", "context", "decision", "falsifier")
+        if any(not isinstance(payload[key], str) or not payload[key].strip() for key in required):
+            raise ValidationError("Project ADR text fields are invalid.")
+        if not isinstance(payload["alternatives"], list) or not payload["alternatives"]:
+            raise ValidationError("Project ADR alternatives are required.")
+        if not isinstance(payload["consequences"], list) or not payload["consequences"]:
+            raise ValidationError("Project ADR consequences are required.")
+        if (
+            not isinstance(payload["supporting_claim_refs"], list)
+            or not payload["supporting_claim_refs"]
+        ):
+            raise ValidationError("Project ADR supporting claims are required.")
+        references = [payload["project_charter_ref"], *payload["supporting_claim_refs"]]
+        if any(
+            not isinstance(reference, dict)
+            or set(reference) != {"artifact_id", "revision"}
+            or not isinstance(reference["artifact_id"], str)
+            or not isinstance(reference["revision"], str)
+            for reference in references
+        ):
+            raise ValidationError("Project ADR exact references are invalid.")
 
 
 def project_id(run_id: str, type_: str, ordinal: int) -> str:
