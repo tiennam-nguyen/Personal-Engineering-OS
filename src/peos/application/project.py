@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
+from peos.application.qualifications import QualificationService
 from peos.domain.artifacts.model import Artifact, Author, Provenance, StoredArtifact
 from peos.domain.context.model import ContextBlock
 from peos.domain.errors import (
@@ -20,6 +21,7 @@ from peos.domain.errors import (
     RunConflictError,
     TerminalRunError,
 )
+from peos.domain.evaluations import CandidateRoute
 from peos.domain.models.audit import ModelRoute, cache_key
 from peos.domain.models.request import ModelBudget, ModelRequest, ProtocolRef
 from peos.domain.project.artifacts import project_id
@@ -61,6 +63,7 @@ class ProjectService:
         protocols: ProtocolRepository,
         cache: ModelCache,
         gateway: ModelGateway,
+        qualifications: QualificationService,
         estate_reader_factory: Callable[[Path], ProjectEstateReader],
         fault_injector: FaultInjector | None = None,
     ) -> None:
@@ -72,6 +75,7 @@ class ProjectService:
         self._protocols = protocols
         self._cache = cache
         self._gateway = gateway
+        self._qualifications = qualifications
         self._reader_factory = estate_reader_factory
         self._faults = fault_injector or NoOpFaultInjector()
 
@@ -285,6 +289,18 @@ class ProjectService:
             "1",
             frozenset({"structured_output"}),
             "private",
+        )
+        self._qualifications.require(
+            CandidateRoute(
+                route.provider,
+                route.model,
+                route.model_revision,
+                "project_planning",
+                route.capabilities,
+                route.sensitivity_ceiling,
+            ),
+            protocol.sha256,
+            sha256(model_request.output_schema),
         )
         key = cache_key(model_request, route)
         cached = None if model_request.cache_policy == "bypass" else self._cache.get(key)

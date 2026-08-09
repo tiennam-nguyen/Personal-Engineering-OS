@@ -1,0 +1,16 @@
+schema_version: 1
+id: summarization.short
+task_kind: summarization
+input_fixture:
+  title: Short
+  body: A short faithful source.
+  source_artifact_id: art_11111111111111111111111111111111
+  source_revision: sha256:2222222222222222222222222222222222222222222222222222222222222222
+  sensitivity: private
+expected:
+  schema_version: 1
+  title: 'Model summary: Short'
+  summary: A short faithful source.
+  source_artifact_id: art_11111111111111111111111111111111
+  source_revision: sha256:2222222222222222222222222222222222222222222222222222222222222222
+tags: [core, smallest]

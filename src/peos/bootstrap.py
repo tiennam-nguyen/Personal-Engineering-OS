@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
+from peos.adapters.filesystem.evaluation_repository import FilesystemEvaluationSuiteRepository
 from peos.adapters.filesystem.model_cache import FilesystemModelCache
 from peos.adapters.filesystem.project_estate_reader import FilesystemProjectEstateReader
 from peos.adapters.filesystem.protocol_repository import FilesystemProtocolRepository
@@ -19,11 +20,14 @@ from peos.adapters.sqlite.artifact_index import SQLiteArtifactIndex
 from peos.application.artifacts import ArtifactService
 from peos.application.context import ContextCompiler
 from peos.application.crossflow import CrossflowService
+from peos.application.evaluation_candidates import CandidateCatalog
+from peos.application.evaluations import EvaluationService
 from peos.application.graph import GraphService
 from peos.application.indexing import IndexingService
 from peos.application.learning import LearningService
 from peos.application.modeling import ModelCallService
 from peos.application.project import ProjectService
+from peos.application.qualifications import QualificationService
 from peos.application.research import ResearchService
 from peos.application.runs import RunService
 from peos.ports.fault_injector import FaultInjector
@@ -58,14 +62,19 @@ def open_run_workspace(root: Path, fault_injector: FaultInjector | None = None) 
     workspace = store.open(root)
     artifacts = FilesystemArtifactRepository(workspace, store)
     index = SQLiteArtifactIndex(workspace.index_path)
+    runs = FilesystemRunRepository(workspace)
+    qualifications = QualificationService(
+        FilesystemEvaluationSuiteRepository(workspace.root), artifacts, runs
+    )
     modeling = ModelCallService(
         FilesystemProtocolRepository(workspace.root),
         ContextCompiler(artifacts, index),
         FilesystemModelCache(workspace),
         DeterministicMockGateway(),
+        qualifications,
     )
     return RunService(
-        FilesystemRunRepository(workspace),
+        runs,
         artifacts,
         index,
         workspace.workspace_id,
@@ -86,16 +95,21 @@ def open_research_workspace(
     workspace = store.open(root)
     artifacts = FilesystemArtifactRepository(workspace, store)
     index = SQLiteArtifactIndex(workspace.index_path)
+    runs = FilesystemRunRepository(workspace)
+    qualifications = QualificationService(
+        FilesystemEvaluationSuiteRepository(workspace.root), artifacts, runs
+    )
     return ResearchService(
         workspace.root,
         workspace.workspace_id,
-        FilesystemRunRepository(workspace),
+        runs,
         artifacts,
         index,
         FilesystemSourceObjectStore(workspace),
         FilesystemProtocolRepository(workspace.root),
         FilesystemModelCache(workspace),
         DeterministicMockGateway(),
+        qualifications,
         fault_injector,
     )
 
@@ -106,15 +120,20 @@ def open_project_workspace(
     store = WorkspaceStore()
     workspace = store.open(root)
     artifacts = FilesystemArtifactRepository(workspace, store)
+    runs = FilesystemRunRepository(workspace)
+    qualifications = QualificationService(
+        FilesystemEvaluationSuiteRepository(workspace.root), artifacts, runs
+    )
     return ProjectService(
         workspace.workspace_id,
-        FilesystemRunRepository(workspace),
+        runs,
         artifacts,
         SQLiteArtifactIndex(workspace.index_path),
         FilesystemSourceObjectStore(workspace),
         FilesystemProtocolRepository(workspace.root),
         FilesystemModelCache(workspace),
         DeterministicMockGateway(),
+        qualifications,
         FilesystemProjectEstateReader,
         fault_injector,
     )
@@ -159,9 +178,35 @@ def open_crossflow_workspace(
     )
 
 
+def open_evaluation_workspace(
+    root: Path, fault_injector: FaultInjector | None = None
+) -> EvaluationService:
+    store = WorkspaceStore()
+    workspace = store.open(root)
+    artifacts = FilesystemArtifactRepository(workspace, store)
+    index = SQLiteArtifactIndex(workspace.index_path)
+    return EvaluationService(
+        workspace.workspace_id,
+        FilesystemEvaluationSuiteRepository(workspace.root),
+        FilesystemProtocolRepository(workspace.root),
+        FilesystemRunRepository(workspace),
+        artifacts,
+        index,
+        CandidateCatalog(DeterministicMockGateway()),
+        fault_injector,
+    )
+
+
 def open_run_for_id(
     root: Path, run_id: str
-) -> RunService | ResearchService | ProjectService | LearningService | CrossflowService:
+) -> (
+    RunService
+    | ResearchService
+    | ProjectService
+    | LearningService
+    | CrossflowService
+    | EvaluationService
+):
     workspace = WorkspaceStore().open(root)
     manifest = FilesystemRunRepository(workspace).read_manifest(run_id)
     workflow = manifest.get("workflow")
@@ -173,6 +218,8 @@ def open_run_for_id(
         return open_learning_workspace(root)
     if isinstance(workflow, dict) and workflow.get("name") == "crossflow.bridge":
         return open_crossflow_workspace(root)
+    if isinstance(workflow, dict) and workflow.get("name") == "system.evaluate-model-route":
+        return open_evaluation_workspace(root)
     return open_run_workspace(root)
 
 

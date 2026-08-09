@@ -1,0 +1,23 @@
+schema_version: 1
+suites:
+  - name: model.summarization.core
+    version: 1.0.0
+    task_kind: summarization
+    path: evals/suites/model.summarization.core/suite.yaml
+    sha256: sha256:805dd2c629ad0c74ce7f578e091e9f0ea0ed1b7491c6a1efd79e0d63d1b60cd6
+    status: active
+    qualification_suite: true
+  - name: model.claim-extraction.core
+    version: 1.0.0
+    task_kind: claim_extraction
+    path: evals/suites/model.claim-extraction.core/suite.yaml
+    sha256: sha256:70d5455a5c4f9d736f175e4ccab2bcc3e061f5214c3e8785f88e69c35e8cafcc
+    status: active
+    qualification_suite: true
+  - name: model.project-planning.core
+    version: 1.0.0
+    task_kind: project_planning
+    path: evals/suites/model.project-planning.core/suite.yaml
+    sha256: sha256:2af883ac01a64cb1caed3a97590361479a2821567e25e8ccc7a5ef8faa8464b8
+    status: active
+    qualification_suite: true

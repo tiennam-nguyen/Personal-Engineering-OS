@@ -16,7 +16,11 @@ def test_durable_response_audit_is_reused_without_call(tmp_path: Path) -> None:
     )
     with pytest.raises(SimulatedInterruption):
         interrupted.start("sample.mock-summarize-concept", source_id)
-    run_id = next((root / ".peos" / "runs").iterdir()).name
+    run_id = next(
+        path.name
+        for path in (root / ".peos" / "runs").iterdir()
+        if "sample.mock-summarize-concept" in (path / "manifest.json").read_text()
+    )
     before = sum(event.type == "model.call_started" for event in interrupted._runs.events(run_id))
     resumed = open_run_workspace(root).resume(run_id)
     after = sum(event.type == "model.call_started" for event in interrupted._runs.events(run_id))
@@ -37,7 +41,11 @@ def test_unknown_call_outcome_is_not_retried(tmp_path: Path) -> None:
     gateway.generate = fail_generate
     with pytest.raises(RuntimeError):
         service.start("sample.mock-summarize-concept", source_id)
-    run_id = next((root / ".peos" / "runs").iterdir()).name
+    run_id = next(
+        path.name
+        for path in (root / ".peos" / "runs").iterdir()
+        if "sample.mock-summarize-concept" in (path / "manifest.json").read_text()
+    )
     with pytest.raises(ModelCallOutcomeUnknown):
         open_run_workspace(root).resume(run_id)
 

@@ -1,0 +1,32 @@
+schema_version: 1
+name: model.claim-extraction.core
+version: 1.0.0
+task_kind: claim_extraction
+protocol:
+  name: research.claim-extraction
+  version: 1.0.0
+  sha256: sha256:795f61056b4d2d3068c7f13190ea4084832b5c1231719e42c7c3b56eb41d8440
+output_contract:
+  name: research.candidate_claim_set.v1
+  schema_hash: sha256:a219de3c8d569a2005b9d840246608f0dcede4432b4c30337f5bf4a6f16b19b8
+required_capabilities: [structured_output, source_locators]
+sensitivity_ceiling: private
+scorers:
+  deterministic: [deterministic.contract.v1, deterministic.budget.v1]
+  reference: [reference.exact_output.v1]
+thresholds:
+  deterministic_all_pass: true
+  min_reference_pass_rate: 1.0
+budget:
+  max_provider_calls_per_case: 1
+  max_input_tokens_per_case: 10000
+  max_output_tokens_per_case: 10000
+  max_input_bytes_per_case: 1000000
+  max_output_bytes_per_case: 1000000
+cases:
+  - path: evals/suites/model.claim-extraction.core/cases/positive.yaml
+    sha256: sha256:a62e8d27cc53f4de7ac69e8683473085ecba341f0fe714856bb5f1336b579fa6
+  - path: evals/suites/model.claim-extraction.core/cases/negative.yaml
+    sha256: sha256:7e42071280b24584109b6e6d6a81076cb643204d6600f5c301b9def8d954a4b0
+  - path: evals/suites/model.claim-extraction.core/cases/injection.yaml
+    sha256: sha256:b7611a0a425d21bd76476c0dcb23f70cd1005e56e041a8054fa0428e7d5d5a3e

@@ -232,3 +232,20 @@ shared normalized keys and standalone `not`; locators are line-only; invalid UTF
 line; no source weighting, human promotion, semantic retrieval, or object GC exists.
 
 Milestone 5 frontier only: Project Compiler vertical slice. No Milestone 5 behavior exists.
+
+## Milestone 8 — evaluation and routing qualification
+
+Status: `GREEN` in the working tree, pending final commit-SHA CI verification.
+
+Delivered committed static qualification suites for all three production model tasks, exact
+route/suite/protocol/schema authorization, deterministic and reference scoring, canonical eval
+reports, comparison without an overall-winner claim, per-case durable resume, unknown-outcome
+fail-closed behavior, cancellation, report re-derivation, stale-policy invalidation, and
+SQLite-loss recovery.
+
+Deliberate sacrifices: mock candidates only; exact static goldens; deterministic `1.0` conformance
+threshold; cache bypass; no retry, real-provider quality claim, pricing, statistical judge,
+cross-suite ranking, or threshold tuning from observed results.
+
+Milestone 9 frontier only: release hardening and end-to-end packaging. Do not add new model tasks,
+provider integrations, or evaluation policy in that milestone without a new decision.

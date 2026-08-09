@@ -126,6 +126,7 @@ def verify_events(events: list[Event], step_ids: tuple[str, ...] | None = None) 
     previous: str | None = None
     event_ids: set[str] = set()
     steps: dict[str, set[str]] = {}
+    model_calls: dict[tuple[str, str], set[str]] = {}
     committed_order: list[str] = []
     run_types: list[str] = []
     terminal = False
@@ -180,7 +181,12 @@ def verify_events(events: list[Event], step_ids: tuple[str, ...] | None = None) 
             if any(identifier not in committed_order for identifier in step_ids[:ordinal]):
                 raise JournalCorruptionError("Step cannot start before earlier steps commit.")
         _replay_event(
-            event, steps, committed_order, run_types, None if step_ids is None else len(step_ids)
+            event,
+            steps,
+            model_calls,
+            committed_order,
+            run_types,
+            None if step_ids is None else len(step_ids),
         )
         terminal = event.type in TERMINAL
 
@@ -188,6 +194,7 @@ def verify_events(events: list[Event], step_ids: tuple[str, ...] | None = None) 
 def _replay_event(
     event: Event,
     steps: dict[str, set[str]],
+    model_calls: dict[tuple[str, str], set[str]],
     committed: list[str],
     run_types: list[str],
     required_steps: int | None,
@@ -243,6 +250,44 @@ def _replay_event(
         "research.synthesis_prepared": "step.execution_started",
         "research.map_verified": "research.synthesis_prepared",
     }
+    model_types = {
+        "context.compiled",
+        "model.request_compiled",
+        "model.cache_miss",
+        "model.cache_hit",
+        "model.call_started",
+        "model.call_completed",
+        "model.response_validated",
+        "model.budget_recorded",
+    }
+    if event.type in model_types:
+        call_id = event.payload.get("call_id")
+        if not isinstance(call_id, str) or not call_id:
+            raise JournalCorruptionError("Model event call ID is invalid.")
+        call_seen = model_calls.setdefault((event.step_id, call_id), set())
+        call_requirements = {
+            "model.request_compiled": "context.compiled",
+            "model.cache_miss": "model.request_compiled",
+            "model.cache_hit": "model.request_compiled",
+            "model.call_started": "model.cache_miss",
+            "model.call_completed": "model.call_started",
+            "model.response_validated": "model.request_compiled",
+            "model.budget_recorded": "model.response_validated",
+        }
+        required_call = call_requirements.get(event.type)
+        if required_call is not None and required_call not in call_seen:
+            raise JournalCorruptionError("Illegal per-call model transition.")
+        if event.type in call_seen:
+            raise JournalCorruptionError("Duplicate per-call model transition.")
+        if event.type == "model.cache_hit" and "model.cache_miss" in call_seen:
+            raise JournalCorruptionError("Model call cannot be both cache hit and miss.")
+        if event.type == "model.cache_miss" and "model.cache_hit" in call_seen:
+            raise JournalCorruptionError("Model call cannot be both cache hit and miss.")
+        if event.type == "model.response_validated" and not (
+            "model.cache_hit" in call_seen or "model.call_completed" in call_seen
+        ):
+            raise JournalCorruptionError("Model response is unavailable for this call.")
+        call_seen.add(event.type)
     required = requirements.get(event.type)
     if required is not None and required not in seen:
         raise JournalCorruptionError("Illegal step lifecycle transition.")
@@ -251,17 +296,16 @@ def _replay_event(
         "artifact.projected",
         "research.source_object_committed",
         "research.source_artifact_committed",
+        "context.compiled",
+        "model.request_compiled",
+        "model.cache_miss",
+        "model.call_started",
+        "model.call_completed",
+        "model.response_validated",
+        "model.budget_recorded",
     }
     if event.type in seen and event.type not in repeatable:
         raise JournalCorruptionError("Duplicate durable step transition.")
-    if event.type == "model.cache_hit" and "model.cache_miss" in seen:
-        raise JournalCorruptionError("Model step cannot be both cache hit and miss.")
-    if event.type == "model.cache_miss" and "model.cache_hit" in seen:
-        raise JournalCorruptionError("Model step cannot be both cache hit and miss.")
-    if event.type == "model.response_validated" and not (
-        "model.cache_hit" in seen or "model.call_completed" in seen
-    ):
-        raise JournalCorruptionError("Model response is unavailable for validation.")
     if (
         event.type == "step.output_staged"
         and "model.request_compiled" in seen

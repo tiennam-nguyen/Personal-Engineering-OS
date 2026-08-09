@@ -1,0 +1,32 @@
+schema_version: 1
+name: model.summarization.core
+version: 1.0.0
+task_kind: summarization
+protocol:
+  name: sample.concept-summary
+  version: 1.0.0
+  sha256: sha256:2f989b8c2ba1c6dd651a863f4753fdede8cce1dfd06b2ae715d276fdf97d8c22
+output_contract:
+  name: sample.concept_summary.v1
+  schema_hash: sha256:cedede69b0ed2e43126aba8c88efbd48c4dc6309260746b6c63a10d76ba47e4e
+required_capabilities: [structured_output]
+sensitivity_ceiling: private
+scorers:
+  deterministic: [deterministic.contract.v1, deterministic.budget.v1]
+  reference: [reference.exact_output.v1]
+thresholds:
+  deterministic_all_pass: true
+  min_reference_pass_rate: 1.0
+budget:
+  max_provider_calls_per_case: 1
+  max_input_tokens_per_case: 1000
+  max_output_tokens_per_case: 1000
+  max_input_bytes_per_case: 10000
+  max_output_bytes_per_case: 10000
+cases:
+  - path: evals/suites/model.summarization.core/cases/short.yaml
+    sha256: sha256:9f17f4e479c416c8cdb8376c0bfa5b4e3921151ce3201abef1d40e625b5c229e
+  - path: evals/suites/model.summarization.core/cases/empty_whitespace.yaml
+    sha256: sha256:ac8138e6121aff9d0ac6aa3f871c284ddbe344c2f5795ac24d7ed7bd09a5b3cf
+  - path: evals/suites/model.summarization.core/cases/injection.yaml
+    sha256: sha256:7a03812118ea9476505995da2064e99db3669486154dbb8a67778a64b2c8b7ac

@@ -13,6 +13,7 @@ from peos.bootstrap import (
     open_workspace,
 )
 from peos.domain.artifacts.model import StoredArtifact
+from tests.evaluation_support import qualify_claim_extraction, qualify_project_planning
 from tests.project_support import PROTOCOL as PROJECT_PROTOCOL
 from tests.research_support import PROTOCOL as RESEARCH_PROTOCOL
 
@@ -23,6 +24,10 @@ def source_workspace(
     workspace = tmp_path / "workspace"
     initialize_workspace(workspace)
     _protocols(workspace)
+    research_hash = "sha256:" + hashlib.sha256(RESEARCH_PROTOCOL.encode()).hexdigest()
+    project_hash = "sha256:" + hashlib.sha256(PROJECT_PROTOCOL.encode()).hexdigest()
+    assert qualify_claim_extraction(workspace, research_hash)["status"] == "QUALIFIED"
+    assert qualify_project_planning(workspace, project_hash)["status"] == "QUALIFIED"
     source = workspace / "inbox" / "bounded.txt"
     source.write_text("Bounded retries reduce uncontrolled repeated execution.\n")
     research = open_research_workspace(workspace).start(

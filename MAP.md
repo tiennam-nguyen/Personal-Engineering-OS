@@ -1,5 +1,22 @@
 # Repository Map
 
+## Milestone 8 Evaluation and Routing Qualification
+
+- Policy truth: committed static YAML under `evals/` defines exactly one active suite for each
+  production model task: summarization, claim extraction, and project planning.
+- Domain: `domain/evaluations` owns frozen suite/route fingerprints, deterministic contract,
+  reference, budget scoring, qualification derivation, and strict report validation.
+- Execution: `application/evaluations.py:EvaluationService` freezes inputs, bypasses cache, audits
+  each exact candidate call, commits one canonical `system.eval_report`, and resumes without
+  repeating a validated call. Unknown call outcomes fail closed.
+- Authorization: `application/qualifications.py:QualificationService` accepts only the latest valid
+  report whose exact task/route/suite/protocol/schema identity belongs to a succeeded evaluation
+  run and its outputs manifest.
+- Storage: canonical reports, frozen inputs, evidence, and journal are authoritative. SQLite remains
+  derived and rebuildable; deleting it cannot delete qualification truth.
+- Boundary: the candidate catalog is mock-only. No provider SDK, network judge, retry, fallback,
+  generated golden, adaptive threshold, pricing claim, or overall-winner claim exists.
+
 ## Milestone 7 Cross-Workflow Graph
 
 - Relation truth: `domain/relations/model.py:materialize_links` parses strict outgoing/incoming

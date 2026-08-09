@@ -4,7 +4,8 @@ import hashlib
 from pathlib import Path
 from typing import cast
 
-from peos.bootstrap import initialize_workspace, open_run_workspace
+from peos.bootstrap import initialize_workspace, open_run_workspace, open_workspace
+from tests.integration.test_evaluation_workflow import qualify_summarization
 
 PROTOCOL = """# Sample Concept Summary Protocol
 
@@ -52,6 +53,8 @@ protocols:
         encoding="utf-8",
         newline="",
     )
+    qualification = qualify_summarization(tmp_path, root)
+    assert qualification["status"] == "QUALIFIED"
     return root, stored.artifact.id
 
 
@@ -84,3 +87,29 @@ def test_stop_resume_does_not_repeat_model_call(tmp_path: Path) -> None:
     after = sum(e.type == "model.call_started" for e in runs._runs.events(run_id))
     assert resumed["state"] == "SUCCEEDED"
     assert before == after == 1
+
+
+def test_sqlite_loss_and_rebuild_preserve_qualification_truth(tmp_path: Path) -> None:
+    root, source_id = workspace(tmp_path)
+    first = open_run_workspace(root).start("sample.mock-summarize-concept", source_id)
+    reports_before = {
+        item.artifact.id: item.artifact.content_hash
+        for item in open_run_workspace(root)._artifacts.scan()
+        if item.artifact.type == "system.eval_report"
+    }
+    index_path = root / ".peos" / "index.sqlite3"
+    index_path.unlink()
+    _, indexing = open_workspace(root)
+    rebuilt = indexing.rebuild()
+    second = open_run_workspace(root).start(
+        "sample.mock-summarize-concept", source_id, no_cache=True
+    )
+    reports_after = {
+        item.artifact.id: item.artifact.content_hash
+        for item in open_run_workspace(root)._artifacts.scan()
+        if item.artifact.type == "system.eval_report"
+    }
+
+    assert rebuilt >= 2
+    assert reports_after == reports_before
+    assert first["state"] == second["state"] == "SUCCEEDED"

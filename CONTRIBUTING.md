@@ -137,3 +137,11 @@ The real smoke must verify source objects/locators, merged evidence, contradicti
 delete and rebuild only the derived SQLite index; then demonstrate inbox-independent resume,
 cache hit with zero calls, and `--no-cache`. Finish with the complete normal/Linux/Windows mypy,
 Python/locked pytest, Ruff and lockfile sequence.
+
+## Evaluation verification
+
+Never derive a committed golden or threshold from candidate output. Changes under `evals/` must
+update the raw case hash in its suite and the raw suite hash in `evals/registry.yaml`. Run focused
+repository, scorer, workflow, resume, cancellation, qualification, tamper, invalidation, and
+SQLite-rebuild tests before the complete gate. A completed call must not repeat on resume, and an
+unknown call outcome must raise rather than retry or fabricate a qualification result.

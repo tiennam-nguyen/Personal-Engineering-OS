@@ -1,0 +1,16 @@
+schema_version: 1
+id: summarization.whitespace-normalization
+task_kind: summarization
+input_fixture:
+  title: Whitespace
+  body: 'One   source    with spacing.'
+  source_artifact_id: art_33333333333333333333333333333333
+  source_revision: sha256:4444444444444444444444444444444444444444444444444444444444444444
+  sensitivity: private
+expected:
+  schema_version: 1
+  title: 'Model summary: Whitespace'
+  summary: One source with spacing.
+  source_artifact_id: art_33333333333333333333333333333333
+  source_revision: sha256:4444444444444444444444444444444444444444444444444444444444444444
+tags: [core, normalization]

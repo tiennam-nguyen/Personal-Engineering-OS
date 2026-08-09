@@ -73,6 +73,25 @@ uv run peos --workspace demo index rebuild
 ```
 
 See [MAP.md](MAP.md), [PLAN.md](PLAN.md), [CONTRIBUTING.md](CONTRIBUTING.md), and [adr](adr).
+
+## Milestone 8 evaluation and qualification
+
+Production model routes fail closed until their exact active suite has a valid latest canonical
+evaluation report. Suites and goldens are reviewed static files under `evals/`.
+
+```powershell
+peos --workspace PATH eval run model.summarization.core `
+  --provider mock --model deterministic-concept-summary-v1 --model-revision 1
+peos --workspace PATH eval compare RUN_A RUN_B
+peos --workspace PATH run inspect RUN_ID
+peos --workspace PATH run resume RUN_ID
+peos --workspace PATH run cancel RUN_ID
+peos --workspace PATH run verify RUN_ID
+```
+
+Evaluation calls always bypass cache. Resume reuses only journal-proven validated response audits;
+an interrupted call with unknown outcome is not retried. Qualification binds the exact task, route,
+suite, protocol, and output-schema hashes. SQLite is rebuildable and is not qualification truth.
 ## Milestone 2 sample run
 
 The original workflow is deterministic and sample-only. Start it with

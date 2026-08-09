@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
+from peos.application.qualifications import QualificationService
 from peos.domain.artifacts.model import Artifact, Author, Provenance, StoredArtifact
 from peos.domain.errors import (
     DuplicateArtifactId,
@@ -20,6 +21,7 @@ from peos.domain.errors import (
     SourceLocatorError,
     SourcePathViolation,
 )
+from peos.domain.evaluations import CandidateRoute
 from peos.domain.models.audit import ModelRoute, cache_key, enforce_budget, response_hash
 from peos.domain.models.request import ModelBudget, ModelRequest, ProtocolRef
 from peos.domain.models.response import (
@@ -63,6 +65,7 @@ class ResearchService:
         protocols: ProtocolRepository,
         cache: ModelCache,
         gateway: ModelGateway,
+        qualifications: QualificationService,
         faults: FaultInjector | None = None,
     ) -> None:
         self._root, self._workspace_id = root, workspace_id
@@ -74,6 +77,7 @@ class ResearchService:
             gateway,
         )
         self._faults = faults or NoOpFaultInjector()
+        self._qualifications = qualifications
 
     def start(
         self,
@@ -525,6 +529,18 @@ class ResearchService:
             "1",
             frozenset({"structured_output", "source_locators"}),
             "private",
+        )
+        self._qualifications.require(
+            CandidateRoute(
+                route.provider,
+                route.model,
+                route.model_revision,
+                "claim_extraction",
+                route.capabilities,
+                route.sensitivity_ceiling,
+            ),
+            protocol.sha256,
+            sha256(research_output_schema()),
         )
         key = cache_key(request, route)
         cached = None if request.cache_policy == "bypass" else self._cache.get(key)

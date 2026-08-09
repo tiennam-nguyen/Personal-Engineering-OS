@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 
 from peos.bootstrap import initialize_workspace
+from tests.evaluation_support import qualify_claim_extraction
 
 PROTOCOL = """# Research Claim Extraction Protocol
 
@@ -45,6 +46,8 @@ protocols:
         encoding="utf-8",
         newline="",
     )
+    qualification = qualify_claim_extraction(root, digest)
+    assert qualification["status"] == "QUALIFIED"
     values = {
         "a.txt": b"The treatment is effective.\n",
         "b.txt": b"The treatment is effective.\r\n",

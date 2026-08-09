@@ -58,7 +58,7 @@ def test_three_crossflow_bridges_are_reversible_and_rebuildable(tmp_path: Path) 
         for edge in cast(list[dict[str, object]], graph.traverse(endpoint, 2)["edges"])
     }
     (workspace / ".peos" / "index.sqlite3").unlink()
-    assert indexing.rebuild() == 11
+    assert indexing.rebuild() == 13
     after_graph = open_graph_workspace(workspace)
     after = {
         tuple(edge.values())

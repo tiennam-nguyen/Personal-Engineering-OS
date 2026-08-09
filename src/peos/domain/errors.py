@@ -201,6 +201,25 @@ class BudgetExceeded(PeosError):
     exit_code = 4
 
 
+class EvaluationConfigurationError(ValidationError):
+    code = "evaluation_configuration_error"
+
+
+class EvaluationIntegrityError(PeosError):
+    code = "evaluation_integrity_error"
+    exit_code = 4
+
+
+class EvaluationNotComparable(PeosError):
+    code = "evaluation_not_comparable"
+    exit_code = 4
+
+
+class RouteQualificationRequired(PeosError):
+    code = "route_qualification_required"
+    exit_code = 4
+
+
 class ResearchInputError(PeosError):
     code = "research_input_error"
     exit_code = 2

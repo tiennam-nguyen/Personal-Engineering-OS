@@ -1,0 +1,34 @@
+schema_version: 1
+id: claim-extraction.positive
+task_kind: claim_extraction
+input_fixture:
+  question: What does the evidence state?
+  question_artifact_id: art_77777777777777777777777777777777
+  question_revision: sha256:8888888888888888888888888888888888888888888888888888888888888888
+  sensitivity: private
+  untrusted_source_blocks:
+    - trust: untrusted_external_content
+      content: The treatment is effective.
+      source_artifact_id: art_99999999999999999999999999999999
+      source_revision: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      object_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+      line_start: 1
+      line_end: 1
+      byte_start: 0
+      byte_end: 27
+      excerpt_hash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+expected:
+  schema_version: 1
+  question_artifact_id: art_77777777777777777777777777777777
+  claims:
+    - proposition: The treatment is effective.
+      polarity: positive
+      source_artifact_id: art_99999999999999999999999999999999
+      source_revision: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      object_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+      line_start: 1
+      line_end: 1
+      byte_start: 0
+      byte_end: 27
+      excerpt_hash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+tags: [core, positive]

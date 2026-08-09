@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from peos.bootstrap import initialize_workspace
+from tests.evaluation_support import qualify_project_planning
 
 PROTOCOL = """# Project Plan Compilation Protocol
 
@@ -36,6 +37,8 @@ protocols:
         encoding="utf-8",
         newline="",
     )
+    qualification = qualify_project_planning(workspace, digest)
+    assert qualification["status"] == "QUALIFIED"
     target = tmp_path / "fixture-repo"
     (target / "src").mkdir(parents=True)
     (target / "tests").mkdir()

@@ -128,3 +128,31 @@ def test_sqlite_index_implements_relation_port_shape() -> None:
     from peos.adapters.sqlite.artifact_index import SQLiteArtifactIndex
 
     assert {"outgoing", "incoming"} <= set(dir(SQLiteArtifactIndex))
+
+
+def test_evaluation_boundaries_and_fixed_scorers() -> None:
+    domain = SOURCE_ROOT / "domain" / "evaluations"
+    forbidden = ("peos.adapters", "peos.cli", "pathlib", "sqlite3", "yaml")
+    for path in domain.glob("*.py"):
+        assert not any(module.startswith(forbidden) for module in _imported_modules(path))
+    scorer_source = (domain / "scorers.py").read_text(encoding="utf-8")
+    assert "importlib" not in scorer_source
+    assert "model.judge" not in scorer_source
+    assert "semantic_similarity" not in scorer_source
+    assert "deterministic-concept-summary-v1" not in scorer_source
+
+
+def test_evaluation_repository_implements_port_shape_and_no_bypass_flag() -> None:
+    from peos.adapters.filesystem.evaluation_repository import (
+        FilesystemEvaluationSuiteRepository,
+    )
+
+    assert {"get", "active_for_task", "list_active"} <= set(
+        dir(FilesystemEvaluationSuiteRepository)
+    )
+    production = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (SOURCE_ROOT / "application").glob("*.py")
+        if path.name != "evaluations.py"
+    )
+    assert "bypass_qualification" not in production

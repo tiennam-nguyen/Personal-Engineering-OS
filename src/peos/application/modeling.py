@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import asdict
 
 from peos.application.context import ContextCompiler
+from peos.application.qualifications import QualificationService
 from peos.domain.errors import (
     ModelCapabilityMismatch,
     ModelResponseValidationError,
@@ -14,6 +15,7 @@ from peos.domain.errors import (
     ProtocolInactiveError,
     SensitivityPolicyViolation,
 )
+from peos.domain.evaluations import CandidateRoute
 from peos.domain.models.audit import ModelRoute, cache_key, enforce_budget, response_hash
 from peos.domain.models.request import ModelBudget, ModelRequest, ProtocolRef
 from peos.domain.models.response import (
@@ -39,11 +41,13 @@ class ModelCallService:
         context: ContextCompiler,
         cache: ModelCache,
         gateway: ModelGateway,
+        qualifications: QualificationService,
     ) -> None:
         self._protocols = protocols
         self._context = context
         self._cache = cache
         self._gateway = gateway
+        self._qualifications = qualifications
 
     def protocol_for_start(self, sensitivity: str) -> ProtocolDefinition:
         protocol = self._protocols.get("sample.concept-summary", "1.0.0")
@@ -98,6 +102,18 @@ class ModelCallService:
             metadata={"run_id": run_id, "call_id": call_id},
             context_manifest_hash=context_hash,
             workflow_step_version="1.0.0",
+        )
+        self._qualifications.require(
+            CandidateRoute(
+                route.provider,
+                route.model,
+                route.model_revision,
+                "summarization",
+                route.capabilities,
+                route.sensitivity_ceiling,
+            ),
+            protocol.sha256,
+            sha256(schema),
         )
         fingerprint = request.fingerprint()
         key = cache_key(request, route)

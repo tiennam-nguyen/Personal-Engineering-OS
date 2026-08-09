@@ -3,6 +3,7 @@
 from peos.domain.errors import ValidationError
 from peos.domain.workflows.model import WorkflowDefinition
 from peos.workflows.crossflow import WORKFLOW as CROSSFLOW_WORKFLOW
+from peos.workflows.evaluation import WORKFLOW as EVALUATION_WORKFLOW
 from peos.workflows.learning import ATTEMPT_WORKFLOW
 from peos.workflows.learning import COMPILE_WORKFLOW as LEARNING_WORKFLOW
 from peos.workflows.mock_summary import WORKFLOW as MOCK_SUMMARY_WORKFLOW
@@ -21,6 +22,7 @@ def get(name: str) -> WorkflowDefinition:
         LEARNING_WORKFLOW.name: LEARNING_WORKFLOW,
         ATTEMPT_WORKFLOW.name: ATTEMPT_WORKFLOW,
         CROSSFLOW_WORKFLOW.name: CROSSFLOW_WORKFLOW,
+        EVALUATION_WORKFLOW.name: EVALUATION_WORKFLOW,
     }
     try:
         return workflows[name]

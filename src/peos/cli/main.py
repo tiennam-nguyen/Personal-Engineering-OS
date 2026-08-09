@@ -12,6 +12,7 @@ from peos.bootstrap import (
     initialize_workspace,
     mutation_lock,
     open_crossflow_workspace,
+    open_evaluation_workspace,
     open_graph_workspace,
     open_learning_workspace,
     open_project_workspace,
@@ -115,6 +116,15 @@ def _parser() -> argparse.ArgumentParser:
     bridge = crossflow.add_parser("bridge")
     bridge.add_argument("--request-file", required=True)
     bridge.add_argument("--stop-after-step", choices=["resolve-crossflow-inputs"])
+    evaluation = commands.add_parser("eval").add_subparsers(dest="eval_command", required=True)
+    eval_run = evaluation.add_parser("run")
+    eval_run.add_argument("suite_name")
+    eval_run.add_argument("--provider", required=True)
+    eval_run.add_argument("--model", required=True)
+    eval_run.add_argument("--model-revision", required=True)
+    eval_compare = evaluation.add_parser("compare")
+    eval_compare.add_argument("run_a")
+    eval_compare.add_argument("run_b")
     return parser
 
 
@@ -293,6 +303,21 @@ def main(argv: list[str] | None = None) -> int:
                 )
             _emit(result)
             return 0
+        if arguments.command == "eval":
+            evaluations = open_evaluation_workspace(workspace)
+            if arguments.eval_command == "run":
+                with mutation_lock(workspace, "eval run"):
+                    result = evaluations.start(
+                        arguments.suite_name,
+                        arguments.provider,
+                        arguments.model,
+                        arguments.model_revision,
+                    )
+                _emit(result)
+                return 0
+            if arguments.eval_command == "compare":
+                _emit(evaluations.compare(arguments.run_a, arguments.run_b))
+                return 0
         if arguments.command == "run":
             if arguments.run_command == "start":
                 runs = open_run_workspace(workspace)
