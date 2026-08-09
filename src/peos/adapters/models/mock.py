@@ -24,6 +24,8 @@ class DeterministicMockGateway:
     invocation_count = 0
 
     def generate(self, request: ModelRequest) -> ModelResponse:
+        if request.task_kind == "project_planning":
+            return self._plan_project(request)
         if request.task_kind == "claim_extraction":
             return self._extract_claims(request)
         if (
@@ -81,6 +83,107 @@ class DeterministicMockGateway:
                 "mock_whitespace_v1",
                 len(input_text.encode()),
                 len(content.encode()),
+            ),
+            "stop",
+            None,
+        )
+
+    def _plan_project(self, request: ModelRequest) -> ModelResponse:
+        if request.capability_requirements != frozenset({"structured_output"}):
+            raise ModelCapabilityMismatch("Deterministic project planning request is incompatible.")
+        try:
+            intent = __import__("json").loads(request.trusted_user_intent)
+        except (TypeError, ValueError) as error:
+            raise ModelGatewayError("Trusted project intent is malformed.") from error
+        if not isinstance(intent, dict):
+            raise ModelGatewayError("Trusted project intent is malformed.")
+        reads = intent["reads"]
+        candidates = list(intent["candidate_change_paths"])
+        forbidden = list(intent["forbidden_change_paths"])
+        output = {
+            "schema_version": 1,
+            "objective": {
+                "mission": intent["request"],
+                "stakeholder": intent["stakeholder"],
+                "optimized_attributes": ["scope safety", "repository provenance", "recoverability"],
+                "deliberate_sacrifices": ["general repository comprehension", "automatic coding"],
+                "non_negotiables": [intent["intolerable_failure"], *intent["constraints"]],
+                "assumptions": [],
+                "scope_exclusions": ["autonomous repository modification", "command execution"],
+            },
+            "requirements": [
+                {
+                    "key": "REQ-001",
+                    "actor": intent["stakeholder"],
+                    "trigger": "the walking skeleton is implemented",
+                    "observable_behavior": intent["definition_of_done"],
+                    "constraints": intent["constraints"],
+                    "failure_behavior": intent["intolerable_failure"],
+                    "priority": "must",
+                    "acceptance": {
+                        "method": "reported_command",
+                        "expected_evidence": intent["expected_evidence"],
+                    },
+                    "source": "project_request",
+                }
+            ],
+            "architecture": {
+                "main_design": "Make the minimum change inside the approved paths.",
+                "pre_mortem": "Scope escape or regression invalidates the result.",
+                "orthogonal": "Check whether tests or documentation alone can meet the objective.",
+                "shadow_review": "Review maintainability, scope, and recovery before acceptance.",
+                "door_decisions": [
+                    {
+                        "decision": "Preserve the public contract",
+                        "classification": "one_way",
+                        "treatment_kind": "seam",
+                        "treatment": "Keep the change behind existing boundaries.",
+                    }
+                ],
+                "trade_ledger": [
+                    {
+                        "gained": "bounded change",
+                        "lost": "broad redesign",
+                        "who_pays": "implementer",
+                        "when_due": "this milestone",
+                        "compounds": "no",
+                    }
+                ],
+                "recommendation": "Implement and verify the single walking skeleton.",
+                "falsifier": "A required change lies outside the approved paths.",
+                "repository_claims": [
+                    {
+                        "claim": "These files were explicitly read by PEOS.",
+                        "evidence_paths": [item["path"] for item in reads],
+                    }
+                ],
+            },
+            "walking_skeleton": {
+                "key": "M1",
+                "objective": intent["request"],
+                "allowed_paths": candidates,
+                "forbidden_paths": forbidden,
+                "deliverables": [intent["definition_of_done"]],
+                "definition_of_done": intent["definition_of_done"],
+                "rollback_recovery": (
+                    "Revert only approved changed files using the target repository recovery path."
+                ),
+                "risks": [intent["intolerable_failure"]],
+                "assumptions": [],
+            },
+        }
+        content = canonical_json(output).decode("utf-8")
+        fingerprint = request.fingerprint()
+        self.invocation_count += 1
+        return ModelResponse(
+            "mock",
+            "deterministic-project-planner-v1",
+            "1",
+            "mockreq_" + fingerprint.removeprefix("sha256:")[:32],
+            content,
+            output,
+            UsageRecord(
+                0, len(re.findall(r"\S+", content)), "mock_whitespace_v1", 0, len(content.encode())
             ),
             "stop",
             None,

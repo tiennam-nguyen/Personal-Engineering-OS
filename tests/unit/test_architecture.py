@@ -76,8 +76,8 @@ def test_registered_workflow_has_independent_verifier() -> None:
     assert callable(sample.verify_prepared)
 
 
-def test_no_tool_or_milestone_5_modules_exist() -> None:
-    forbidden = ("tool_executor", "project_compiler")
+def test_no_tool_or_milestone_6_modules_exist() -> None:
+    forbidden = ("tool_executor", "learning_compiler")
     paths = [path.as_posix() for path in SOURCE_ROOT.rglob("*.py")]
     assert not any(name in path for name in forbidden for path in paths)
 
@@ -86,3 +86,9 @@ def test_source_object_store_implements_port_shape() -> None:
     from peos.adapters.filesystem.source_object_store import FilesystemSourceObjectStore
 
     assert {"put", "read", "verify", "exists", "locator"} <= set(dir(FilesystemSourceObjectStore))
+
+
+def test_project_estate_reader_implements_port_shape() -> None:
+    from peos.adapters.filesystem.project_estate_reader import FilesystemProjectEstateReader
+
+    assert {"read", "tree"} <= set(dir(FilesystemProjectEstateReader))

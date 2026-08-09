@@ -1,5 +1,20 @@
 # Plan
 
+## Milestone 5 — Project Compiler
+
+State: locally implemented; remote promotion remains unverified.
+
+- Baseline: `13e42158d56f60f1494a19d4d966b15e458ccd05` on `main`, clean; 116 tests collected and baseline locked pytest exited 0.
+- Surface: strict request/result, bounded estate snapshots, protocol/model/cache, deterministic L0–L3 map, aggregate charter, packet, resume/cancel/verify, result-map update, CLI, guards, ADR 0012.
+- Focused evidence: project domain/estate/workflow/CLI/cancellation/architecture group completed 16 tests with exit 0; focused durable result-run/model-resume/CLI regression completed 4 tests with exit 0.
+- Final local gate: `git diff --check`, `uv lock --check`, Ruff format/check, normal/Linux/Windows mypy, Python pytest, locked pytest, and collect-only all exited 0. Mypy checked 116 source files on each target; Python pytest reported `125 passed in 118.69s`; locked pytest reported `125 passed in 132.52s`; collect-only inventoried 125 tests.
+- Injection/scope: a fixture README contains scope-widening text but stays forbidden and outside Allowed; an out-of-scope result fails before map creation.
+- Recovery/cache: snapshot stop/resume reuses objects; equivalent input cache hit reports zero provider calls; cancellation is idempotent and verifies.
+- Result: accepted `src/app.py` bytes create a new map, preserve the old map, and label verification `reported`.
+- Process smokes: compile run `run_5e016fee1e1e4d82b6290c653916c0d3` verified and packet reconstruction survived SQLite rebuild (`artifacts_indexed: 3`); result run `run_12afe8900ead40d0a1f0d119b2c337b2` committed two steps and independently verified. Exact-byte cache hit used zero provider calls; bypass used one.
+- Remote CI: `[UNKNOWN]` until an authorized Milestone 5 commit is pushed and Actions is observed on its exact SHA.
+- Milestone 6 frontier: Learning Compiler only after Milestone 5 promotion; no Milestone 6 code exists here.
+
 ## Mission
 
 Build PEOS milestone by milestone without making durable work dependent on a provider, projection

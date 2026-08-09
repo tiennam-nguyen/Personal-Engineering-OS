@@ -1,5 +1,17 @@
 # Repository Map
 
+## Milestone 5 Project Compiler
+
+- Domain: `src/peos/domain/project/model.py:ProjectRequest`, `result.py:ResultManifest`, and `artifacts.py:validate_project_payload` own strict request/result and exactly-three-artifact contracts.
+- Trust boundary: `src/peos/application/project.py:ProjectService._draft` separates trusted intent, optional synthesis context data, and verified repository bytes as untrusted source blocks.
+- Evidence: `src/peos/ports/project_estate_reader.py:ProjectEstateReader` and its filesystem adapter bound reads; raw bytes reuse `SourceObjectStore`.
+- Flow: `project.compile@1.0.0` snapshots, drafts with `deterministic-project-planner-v1`, then canonically commits map, charter, and packet before SQLite projection.
+- Resurrection: `src/peos/domain/project/packet.py:render_packet` reconstructs the packet from canonical map/charter. Resume reuses committed snapshot/plan evidence; cache is derived and `--no-cache` bypasses it.
+- Result scope: `src/peos/domain/project/result.py:validate_result_scope` rejects paths outside Allowed before canonical mutation. Accepted bytes are reread/hash-checked and a new map `supersedes` the preserved old map.
+- Durable state: canonical artifacts, source objects, immutable evidence, and append-only hash-chained journals are authoritative. SQLite and model cache are derived and rebuildable.
+- Boundary: `src/peos/bootstrap.py:open_project_workspace` wires concrete adapters; CLI/application/domain dependency directions remain inward.
+- Limits: existing-repository mode, explicit UTF-8 reads, two-level tree names, one walking skeleton, reported result verification, and no repository/Git/Codex/command/network execution.
+
 ## L0 — purpose
 
 PEOS preserves durable intellectual work independently of providers and the SQLite projection.

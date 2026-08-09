@@ -11,6 +11,7 @@ from pathlib import Path
 from peos.bootstrap import (
     initialize_workspace,
     mutation_lock,
+    open_project_workspace,
     open_protocol_workspace,
     open_research_workspace,
     open_run_for_id,
@@ -78,6 +79,19 @@ def _parser() -> argparse.ArgumentParser:
         choices=["ingest-research-inputs", "extract-candidate-claims"],
     )
     compile_research.add_argument("--no-cache", action="store_true")
+    project = commands.add_parser("project").add_subparsers(dest="project_command", required=True)
+    compile_project = project.add_parser("compile")
+    compile_project.add_argument("--request-file", required=True)
+    compile_project.add_argument(
+        "--stop-after-step",
+        choices=["snapshot-project-inputs", "draft-project-charter"],
+    )
+    compile_project.add_argument("--no-cache", action="store_true")
+    export_project = project.add_parser("export-codex")
+    export_project.add_argument("packet_artifact_id")
+    accept_project = project.add_parser("accept-result")
+    accept_project.add_argument("--packet", required=True)
+    accept_project.add_argument("--result-file", required=True)
     return parser
 
 
@@ -87,7 +101,7 @@ def _emit(value: object) -> None:
 
 def _artifact_json(stored: StoredArtifact) -> dict[str, object]:
     artifact = stored.artifact
-    return {
+    result: dict[str, object] = {
         "authors": [{"id": author.id, "kind": author.kind} for author in artifact.authors],
         "body": artifact.body,
         "content_hash": artifact.content_hash,
@@ -108,6 +122,9 @@ def _artifact_json(stored: StoredArtifact) -> dict[str, object]:
         "updated_at": artifact.updated_at,
         "workspace_id": artifact.workspace_id,
     }
+    if artifact.payload is not None:
+        result["payload"] = artifact.payload
+    return result
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -208,6 +225,25 @@ def main(argv: list[str] | None = None) -> int:
                 )
             _emit(result)
             return 0
+        if arguments.command == "project":
+            projects = open_project_workspace(workspace)
+            if arguments.project_command == "compile":
+                with mutation_lock(workspace, "project compile"):
+                    result = projects.start(
+                        Path(arguments.request_file),
+                        arguments.stop_after_step,
+                        arguments.no_cache,
+                    )
+                _emit(result)
+                return 0
+            if arguments.project_command == "export-codex":
+                _emit(projects.export_packet(arguments.packet_artifact_id))
+                return 0
+            if arguments.project_command == "accept-result":
+                with mutation_lock(workspace, "project accept-result"):
+                    result = projects.accept_result(arguments.packet, Path(arguments.result_file))
+                _emit(result)
+                return 0
         if arguments.command == "run":
             if arguments.run_command == "start":
                 runs = open_run_workspace(workspace)

@@ -1,5 +1,18 @@
 # Contributing
 
+## Project Compiler verification
+
+```text
+uv run --locked pytest tests/unit/test_project_artifacts.py -q
+uv run --locked pytest tests/integration/test_project_estate_reader.py -q
+uv run --locked pytest tests/integration/test_project_workflow.py -q
+uv run --locked pytest tests/integration/test_project_cli.py -q
+uv run --locked pytest tests/integration/test_project_cancellation.py -q
+uv run --locked pytest tests/unit/test_architecture.py -q
+```
+
+Use a temporary PEOS workspace and a separate temporary target repository. Cleanup only exact resolved fixture paths after confirming `peos.yaml`; never recursively remove a computed workspace/repository root. Cover domain/artifacts, estate reads, deterministic mock/cache, resume, result scope, cancellation, JSON CLI, architecture, and Linux/Windows mypy.
+
 ## Toolchain
 
 [READ] This project uses Python 3.11, `uv`, pytest, Ruff, and mypy. Package bounds live in

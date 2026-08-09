@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from peos.adapters.filesystem.model_cache import FilesystemModelCache
+from peos.adapters.filesystem.project_estate_reader import FilesystemProjectEstateReader
 from peos.adapters.filesystem.protocol_repository import FilesystemProtocolRepository
 from peos.adapters.filesystem.repository import FilesystemArtifactRepository
 from peos.adapters.filesystem.run_repository import FilesystemRunRepository
@@ -19,6 +20,7 @@ from peos.application.artifacts import ArtifactService
 from peos.application.context import ContextCompiler
 from peos.application.indexing import IndexingService
 from peos.application.modeling import ModelCallService
+from peos.application.project import ProjectService
 from peos.application.research import ResearchService
 from peos.application.runs import RunService
 from peos.ports.fault_injector import FaultInjector
@@ -95,12 +97,34 @@ def open_research_workspace(
     )
 
 
-def open_run_for_id(root: Path, run_id: str) -> RunService | ResearchService:
+def open_project_workspace(
+    root: Path, fault_injector: FaultInjector | None = None
+) -> ProjectService:
+    store = WorkspaceStore()
+    workspace = store.open(root)
+    artifacts = FilesystemArtifactRepository(workspace, store)
+    return ProjectService(
+        workspace.workspace_id,
+        FilesystemRunRepository(workspace),
+        artifacts,
+        SQLiteArtifactIndex(workspace.index_path),
+        FilesystemSourceObjectStore(workspace),
+        FilesystemProtocolRepository(workspace.root),
+        FilesystemModelCache(workspace),
+        DeterministicMockGateway(),
+        FilesystemProjectEstateReader,
+        fault_injector,
+    )
+
+
+def open_run_for_id(root: Path, run_id: str) -> RunService | ResearchService | ProjectService:
     workspace = WorkspaceStore().open(root)
     manifest = FilesystemRunRepository(workspace).read_manifest(run_id)
     workflow = manifest.get("workflow")
     if isinstance(workflow, dict) and workflow.get("name") == "research.compile-plain-text":
         return open_research_workspace(root)
+    if isinstance(workflow, dict) and str(workflow.get("name", "")).startswith("project."):
+        return open_project_workspace(root)
     return open_run_workspace(root)
 
 

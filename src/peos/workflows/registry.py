@@ -3,6 +3,7 @@
 from peos.domain.errors import ValidationError
 from peos.domain.workflows.model import WorkflowDefinition
 from peos.workflows.mock_summary import WORKFLOW as MOCK_SUMMARY_WORKFLOW
+from peos.workflows.project import COMPILE_WORKFLOW, RESULT_WORKFLOW
 from peos.workflows.research import WORKFLOW as RESEARCH_WORKFLOW
 from peos.workflows.sample import WORKFLOW
 
@@ -12,6 +13,8 @@ def get(name: str) -> WorkflowDefinition:
         WORKFLOW.name: WORKFLOW,
         MOCK_SUMMARY_WORKFLOW.name: MOCK_SUMMARY_WORKFLOW,
         RESEARCH_WORKFLOW.name: RESEARCH_WORKFLOW,
+        COMPILE_WORKFLOW.name: COMPILE_WORKFLOW,
+        RESULT_WORKFLOW.name: RESULT_WORKFLOW,
     }
     try:
         return workflows[name]

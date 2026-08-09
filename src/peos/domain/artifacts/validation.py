@@ -19,6 +19,9 @@ ARTIFACT_TYPES = frozenset(
         "research.claim",
         "research.contradiction",
         "research.synthesis",
+        "project.map",
+        "project.charter",
+        "project.codex_packet",
     }
 )
 SCHEMA_VERSION = 1
@@ -40,7 +43,9 @@ _ENVELOPE_FIELDS = (
 )
 _STATUSES = frozenset({"draft", "reviewed", "accepted", "superseded", "rejected"})
 _SENSITIVITIES = frozenset({"private", "confidential", "public"})
-_RELATIONS = frozenset({"derived_from", "supports", "contradicts", "references", "produced_by"})
+_RELATIONS = frozenset(
+    {"derived_from", "supports", "contradicts", "references", "produced_by", "supersedes"}
+)
 
 
 def normalize_body(body: str) -> str:
@@ -119,6 +124,10 @@ def validate_artifact(
         from peos.domain.research.artifacts import validate_research_payload
 
         validate_research_payload(artifact.type, artifact.payload)
+    if artifact.type.startswith("project."):
+        from peos.domain.project.artifacts import validate_project_payload
+
+        validate_project_payload(artifact.type, artifact.payload, artifact.body)
     provenance = artifact.provenance
     if provenance.producer == "human":
         if (
@@ -133,7 +142,9 @@ def validate_artifact(
         ):
             raise ValidationError("System provenance run ID is invalid.")
         if not any(author.kind == "system" for author in artifact.authors) or (
-            not provenance.source_refs and artifact.type != "research.question"
+            not provenance.source_refs
+            and artifact.type != "research.question"
+            and not artifact.type.startswith("project.")
         ):
             raise ValidationError("System provenance requires a system author and sources.")
         for source in provenance.source_refs:

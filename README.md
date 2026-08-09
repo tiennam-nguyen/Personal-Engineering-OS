@@ -1,5 +1,20 @@
 # PEOS
 
+## Project Compiler (Milestone 5)
+
+Project Compiler supports one existing local repository, explicit UTF-8 reads with a named question, optional exact `research.synthesis` context, and one walking-skeleton packet. With workspace-owned `project.plan-compilation@1.0.0` installed:
+
+```text
+peos --workspace WORKSPACE project compile --request-file REQUEST.json
+peos --workspace WORKSPACE project export-codex PACKET_ARTIFACT_ID
+peos --workspace WORKSPACE project accept-result --packet PACKET_ARTIFACT_ID --result-file RESULT.json
+peos --workspace WORKSPACE run inspect|resume|cancel|verify RUN_ID
+```
+
+Compile accepts `--stop-after-step snapshot-project-inputs`, `--stop-after-step draft-project-charter`, and `--no-cache`. The strict request freezes intent, stakeholder, intolerable failure, constraints, done contract, root, ordered read/path/role/question records, flow, candidate/forbidden scope, exact verification contract, optional synthesis ID, and sensitivity.
+
+PEOS does not modify the target repository, run Codex, run arbitrary commands, or execute packet verification. Repository content is data-only. Result verification is reported, not PEOS `[RAN]` evidence. The deterministic mock is not evidence of architecture quality. Only existing-repository mode, one walking skeleton, and canonical `project.map`, `project.charter`, and `project.codex_packet` exist in Milestone 5.
+
 Personal Engineering OS is a local-first, single-user modular monolith.
 
 Milestones 1–2 implement a local artifact round trip and one deterministic sample workflow.

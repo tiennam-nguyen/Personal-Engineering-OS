@@ -253,3 +253,27 @@ class ResearchMapConflict(PeosError):
 class ResearchVerificationError(PeosError):
     code = "research_verification_error"
     exit_code = 4
+
+
+class ProjectRequestInvalid(ValidationError):
+    code = "project_request_invalid"
+
+
+class ProjectEstatePathError(PeosError):
+    code = "project_estate_path_error"
+    exit_code = 2
+
+
+class ProjectPacketIntegrityError(PeosError):
+    code = "project_packet_integrity_error"
+    exit_code = 4
+
+
+class ProjectScopeViolation(PeosError):
+    code = "project_scope_violation"
+    exit_code = 4
+
+
+class ProjectResultConflict(PeosError):
+    code = "project_result_conflict"
+    exit_code = 4
