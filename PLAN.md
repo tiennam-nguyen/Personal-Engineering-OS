@@ -2,7 +2,7 @@
 
 ## Milestone 6 — Learning Compiler
 
-State: local implementation and verification GREEN; commit, push, and exact-SHA CI observation
+State: implementation commit promoted; final documentation commit and exact-SHA CI observation
 remain pending.
 
 - Baseline: `c313d975320a220b0a9e1d3c0c06044e50e1f229` on `main`, clean; 125 tests collected and baseline locked pytest exited 0.
@@ -25,8 +25,9 @@ remain pending.
   the goal file was deleted and diagnostic file changed. Cancelled run
   `run_2fe2c887e9164ed7ae99f814bdded656` verified, event count stayed `11 -> 12 -> 12` across repeated
   cancel, and resume failed safely with exit 4.
-- Remote CI: `[UNKNOWN]` until the authorized Milestone 6 commit is pushed and Actions is observed
-  on its exact SHA.
+- Remote CI: implementation commit `4d9191269e77d7f6af1ef942d4a6f63942bb3001` was observed GREEN
+  in GitHub Actions run `31309938604`; the quality job completed in 44 seconds after locked sync,
+  Ruff format/check, mypy, and locked pytest all succeeded.
 - Milestone 7 frontier: cross-workflow graph only after Milestone 6 promotion; no Milestone 7 code
   is included here.
 
