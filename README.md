@@ -1,5 +1,27 @@
 # PEOS
 
+## Learning Compiler (Milestone 6)
+
+Learning Compiler deterministically turns a strict capability goal and diagnostic fixture into a
+durable plan, then records evidence for its planned first exercise:
+
+```text
+peos --workspace WORKSPACE learn compile --goal-file GOAL.json --diagnostic-file DIAGNOSTIC.json
+peos --workspace WORKSPACE learn attempt --goal GOAL_ARTIFACT_ID --attempt-file ATTEMPT.json
+peos --workspace WORKSPACE run inspect|resume|cancel|verify RUN_ID
+```
+
+Compile may stop after `freeze-learning-inputs` or `analyze-learning-gap`. Inputs are frozen before
+analysis, so resume does not reread modified or deleted files. Attempts require the exact goal
+revision and planned exercise. Only exact-text and single-choice verification exist.
+
+The only learning artifacts are `learning.goal`, `learning.attempt`, and `learning.mastery`.
+Mastery keeps recall, explanation, application, transfer, and retention distinct; same-session
+retention remains `NOT_ASSESSED`. `fixed_interval/v1` review dates are recommendations, not proof
+of mastery. SQLite remains derived: delete only `.peos/index.sqlite3`, run `index rebuild`, and
+canonical learning artifacts remain available. No model, semantic grader, scalar score, mastered
+boolean, or cross-workflow graph is part of Milestone 6.
+
 ## Project Compiler (Milestone 5)
 
 Project Compiler supports one existing local repository, explicit UTF-8 reads with a named question, optional exact `research.synthesis` context, and one walking-skeleton packet. With workspace-owned `project.plan-compilation@1.0.0` installed:

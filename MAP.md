@@ -1,5 +1,26 @@
 # Repository Map
 
+## Milestone 6 Learning Compiler
+
+- Domain: `src/peos/domain/learning/model.py` owns strict goal, diagnostic, exercise, and attempt
+  input contracts; `graph.py`, `diagnostic.py`, and `mastery.py` own pure deterministic decisions.
+- Canonical aggregate: exactly `learning.goal`, `learning.attempt`, and `learning.mastery` are
+  admitted by `domain/artifacts/validation.py`; nested graph, gap, plan, exercise, dimensions, and
+  review records do not create extra artifact types.
+- Compile flow: `learning.compile@1.0.0` freezes exact JSON bytes, analyzes the acyclic prerequisite
+  graph and diagnostic, then commits one goal artifact before SQLite projection.
+- Attempt flow: `learning.record-attempt@1.0.0` binds an answer to the exact goal revision and
+  planned first exercise, applies its deterministic verifier, then commits attempt before mastery.
+- Epistemic boundary: recall, explanation, application, transfer, and retention stay separate;
+  same-session retention is `NOT_ASSESSED`; `fixed_interval/v1` produces a recommendation only.
+- Recovery: committed evidence is authoritative, committed steps are skipped, identical canonical
+  artifacts reconcile, and missing SQLite rows are repaired by projection or full index rebuild.
+- Boundary: bootstrap wires existing filesystem/SQLite adapters. Learning domain, workflows, and
+  application import no adapters, database packages, model SDKs, model routes, or model cache.
+- Limits: strict UTF-8 JSON, exact-text and single-choice verifiers, fixed finite DAG, one first
+  exercise, fixed-interval review, no semantic grading, no scalar mastery, and no Milestone 7
+  cross-workflow graph.
+
 ## Milestone 5 Project Compiler
 
 - Domain: `src/peos/domain/project/model.py:ProjectRequest`, `result.py:ResultManifest`, and `artifacts.py:validate_project_payload` own strict request/result and exactly-three-artifact contracts.

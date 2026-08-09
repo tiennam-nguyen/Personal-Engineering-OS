@@ -22,6 +22,9 @@ ARTIFACT_TYPES = frozenset(
         "project.map",
         "project.charter",
         "project.codex_packet",
+        "learning.goal",
+        "learning.attempt",
+        "learning.mastery",
     }
 )
 SCHEMA_VERSION = 1
@@ -128,6 +131,10 @@ def validate_artifact(
         from peos.domain.project.artifacts import validate_project_payload
 
         validate_project_payload(artifact.type, artifact.payload, artifact.body)
+    if artifact.type.startswith("learning."):
+        from peos.domain.learning.artifacts import validate_learning_payload
+
+        validate_learning_payload(artifact.type, artifact.payload)
     provenance = artifact.provenance
     if provenance.producer == "human":
         if (
@@ -145,6 +152,7 @@ def validate_artifact(
             not provenance.source_refs
             and artifact.type != "research.question"
             and not artifact.type.startswith("project.")
+            and artifact.type != "learning.goal"
         ):
             raise ValidationError("System provenance requires a system author and sources.")
         for source in provenance.source_refs:

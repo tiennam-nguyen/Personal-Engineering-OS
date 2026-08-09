@@ -277,3 +277,27 @@ class ProjectScopeViolation(PeosError):
 class ProjectResultConflict(PeosError):
     code = "project_result_conflict"
     exit_code = 4
+
+
+class LearningInputInvalid(ValidationError):
+    code = "learning_input_invalid"
+
+
+class LearningGraphInvalid(PeosError):
+    code = "learning_graph_invalid"
+    exit_code = 2
+
+
+class LearningExerciseUnavailable(PeosError):
+    code = "learning_exercise_unavailable"
+    exit_code = 4
+
+
+class LearningAttemptInvalid(PeosError):
+    code = "learning_attempt_invalid"
+    exit_code = 4
+
+
+class LearningMasteryConflict(PeosError):
+    code = "learning_mastery_conflict"
+    exit_code = 4

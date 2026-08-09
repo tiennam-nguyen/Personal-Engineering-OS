@@ -19,6 +19,7 @@ from peos.adapters.sqlite.artifact_index import SQLiteArtifactIndex
 from peos.application.artifacts import ArtifactService
 from peos.application.context import ContextCompiler
 from peos.application.indexing import IndexingService
+from peos.application.learning import LearningService
 from peos.application.modeling import ModelCallService
 from peos.application.project import ProjectService
 from peos.application.research import ResearchService
@@ -117,7 +118,23 @@ def open_project_workspace(
     )
 
 
-def open_run_for_id(root: Path, run_id: str) -> RunService | ResearchService | ProjectService:
+def open_learning_workspace(
+    root: Path, fault_injector: FaultInjector | None = None
+) -> LearningService:
+    store = WorkspaceStore()
+    workspace = store.open(root)
+    return LearningService(
+        workspace.workspace_id,
+        FilesystemRunRepository(workspace),
+        FilesystemArtifactRepository(workspace, store),
+        SQLiteArtifactIndex(workspace.index_path),
+        fault_injector,
+    )
+
+
+def open_run_for_id(
+    root: Path, run_id: str
+) -> RunService | ResearchService | ProjectService | LearningService:
     workspace = WorkspaceStore().open(root)
     manifest = FilesystemRunRepository(workspace).read_manifest(run_id)
     workflow = manifest.get("workflow")
@@ -125,6 +142,8 @@ def open_run_for_id(root: Path, run_id: str) -> RunService | ResearchService | P
         return open_research_workspace(root)
     if isinstance(workflow, dict) and str(workflow.get("name", "")).startswith("project."):
         return open_project_workspace(root)
+    if isinstance(workflow, dict) and str(workflow.get("name", "")).startswith("learning."):
+        return open_learning_workspace(root)
     return open_run_workspace(root)
 
 

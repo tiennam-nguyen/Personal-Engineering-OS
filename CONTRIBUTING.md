@@ -1,5 +1,27 @@
 # Contributing
 
+## Learning Compiler verification
+
+```text
+uv run --locked pytest tests/unit/test_learning_model.py tests/unit/test_learning_diagnostic.py tests/unit/test_learning_graph.py tests/unit/test_learning_mastery.py tests/unit/test_learning_artifacts.py -q
+uv run --locked pytest tests/integration/test_learning_workflow.py tests/integration/test_learning_resume.py tests/integration/test_learning_cancellation.py tests/integration/test_learning_cli.py -q
+uv run --locked pytest tests/unit/test_architecture.py -q
+```
+
+Use a temporary initialized workspace for real CLI smoke. Exercise the acceptance fixture through
+compile, inspect, verify, artifact lookup, exact-revision attempt, and mastery lookup. Then remove
+only the resolved workspace's derived `.peos/index.sqlite3`, rebuild it, and repeat lookups and run
+verification. Resume smoke must modify or delete external JSON after its frozen-input step;
+cancellation smoke must prove a cancelled run cannot resume and repeated cancellation appends no
+event. Expected CLI failures must return a stable error without a traceback.
+
+Learning tests must cover empty/invalid references, duplicate identifiers, self/two-node/longer
+cycles, diagnostic pass/fail/not-assessed, deterministic gap ordering, time-budget behavior,
+exact-text normalization, single-choice option validation, stale goal revisions, five separate
+mastery dimensions, same-session retention, fixed review dates, canonical-first recovery, and
+SQLite rebuild. Do not add a model route, model cache, scalar mastery, or a fourth learning artifact
+type.
+
 ## Project Compiler verification
 
 ```text

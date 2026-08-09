@@ -92,3 +92,14 @@ def test_project_estate_reader_implements_port_shape() -> None:
     from peos.adapters.filesystem.project_estate_reader import FilesystemProjectEstateReader
 
     assert {"read", "tree"} <= set(dir(FilesystemProjectEstateReader))
+
+
+def test_learning_compiler_has_no_model_or_adapter_dependency() -> None:
+    learning_paths = [
+        SOURCE_ROOT / "application" / "learning.py",
+        *(SOURCE_ROOT / "domain" / "learning").glob("*.py"),
+        SOURCE_ROOT / "workflows" / "learning.py",
+    ]
+    forbidden = ("peos.adapters", "peos.domain.models", "peos.ports.model_gateway")
+    for path in learning_paths:
+        assert not any(module.startswith(forbidden) for module in _imported_modules(path))

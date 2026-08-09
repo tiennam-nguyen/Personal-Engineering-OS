@@ -11,6 +11,7 @@ from pathlib import Path
 from peos.bootstrap import (
     initialize_workspace,
     mutation_lock,
+    open_learning_workspace,
     open_project_workspace,
     open_protocol_workspace,
     open_research_workspace,
@@ -92,6 +93,17 @@ def _parser() -> argparse.ArgumentParser:
     accept_project = project.add_parser("accept-result")
     accept_project.add_argument("--packet", required=True)
     accept_project.add_argument("--result-file", required=True)
+    learn = commands.add_parser("learn").add_subparsers(dest="learn_command", required=True)
+    learn_compile = learn.add_parser("compile")
+    learn_compile.add_argument("--goal-file", required=True)
+    learn_compile.add_argument("--diagnostic-file", required=True)
+    learn_compile.add_argument(
+        "--stop-after-step",
+        choices=["freeze-learning-inputs", "analyze-learning-gap"],
+    )
+    learn_attempt = learn.add_parser("attempt")
+    learn_attempt.add_argument("--goal", required=True)
+    learn_attempt.add_argument("--attempt-file", required=True)
     return parser
 
 
@@ -242,6 +254,22 @@ def main(argv: list[str] | None = None) -> int:
             if arguments.project_command == "accept-result":
                 with mutation_lock(workspace, "project accept-result"):
                     result = projects.accept_result(arguments.packet, Path(arguments.result_file))
+                _emit(result)
+                return 0
+        if arguments.command == "learn":
+            learning = open_learning_workspace(workspace)
+            if arguments.learn_command == "compile":
+                with mutation_lock(workspace, "learn compile"):
+                    result = learning.start_compile(
+                        Path(arguments.goal_file),
+                        Path(arguments.diagnostic_file),
+                        arguments.stop_after_step,
+                    )
+                _emit(result)
+                return 0
+            if arguments.learn_command == "attempt":
+                with mutation_lock(workspace, "learn attempt"):
+                    result = learning.start_attempt(arguments.goal, Path(arguments.attempt_file))
                 _emit(result)
                 return 0
         if arguments.command == "run":

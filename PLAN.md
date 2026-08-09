@@ -1,5 +1,35 @@
 # Plan
 
+## Milestone 6 — Learning Compiler
+
+State: local implementation and verification GREEN; commit, push, and exact-SHA CI observation
+remain pending.
+
+- Baseline: `c313d975320a220b0a9e1d3c0c06044e50e1f229` on `main`, clean; 125 tests collected and baseline locked pytest exited 0.
+- Surface: deterministic goal compilation and attempt recording, exact three-artifact aggregate,
+  cycle rejection, diagnostic gaps, first exercise and future events, five mastery dimensions,
+  fixed review policy, frozen-input resume, cancellation, independent verification, CLI, index
+  rebuild compatibility, architecture guards, and ADR 0013.
+- Focused evidence: Ruff and mypy passed; learning resume/cancellation plus Project CLI regression
+  group completed six tests with exit 0.
+- Final local gate: `git diff --check`, `uv lock --check`, Ruff format/check, normal/Linux/Windows
+  mypy, Python pytest, locked pytest, and collect-only all exited 0. Mypy checked 134 source files on
+  each target; Python pytest reported `139 passed in 151.93s`; locked pytest reported
+  `139 passed in 139.42s`; collect-only inventoried 139 tests.
+- Acceptance smoke: compile `run_473fcdad14c74ba3a94bbd12feebbdb0` selected
+  `binary-search-interval` / `exercise-interval-1`; attempt
+  `run_521a04b01f334281aeed167834cabd8b` demonstrated explanation while retention remained
+  `NOT_ASSESSED`; both independently verified. Deleting the derived index and rebuilding indexed
+  three canonical learning artifacts; both runs verified afterward.
+- Recovery smoke: compile `run_f125ea1f9e284784abee4d130f57fce1` resumed from frozen inputs after
+  the goal file was deleted and diagnostic file changed. Cancelled run
+  `run_2fe2c887e9164ed7ae99f814bdded656` verified, event count stayed `11 -> 12 -> 12` across repeated
+  cancel, and resume failed safely with exit 4.
+- Remote CI: `[UNKNOWN]` until the authorized Milestone 6 commit is pushed and Actions is observed
+  on its exact SHA.
+- Milestone 7 frontier: cross-workflow graph only after Milestone 6 promotion; no Milestone 7 code
+  is included here.
+
 ## Milestone 5 — Project Compiler
 
 State: locally implemented; remote promotion remains unverified.
