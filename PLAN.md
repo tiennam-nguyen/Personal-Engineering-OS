@@ -268,7 +268,12 @@ backup/fixtures, archive inspector, black-box acceptance, and Linux release-smok
   manifest `sha256:d04f58a615bddc9b104c2bca17b775a5fa92de805bb70066f99d4c577d212767`.
 - [RAN] executable acceptance passed all three compilers plus attempt, rebuilt 13 artifacts, and
   reported doctor healthy before and after index destruction.
-- [PENDING] final regression, detached checkout, implementation/final CI, annotated tag.
+- [RAN] detached checkout `2515b48970c745c9cc069275ce0b1613e5d140da` verified the committed
+  backup, built/inspected both archives, imported the wheel from isolated `site-packages`, and passed
+  three-compiler acceptance plus SQLite rebuild and final doctor.
+- [RAN] implementation/fix HEAD `e7e1213bef82e3b5fe8d1bec9fba3f3b526f210b` passed GitHub Actions
+  run `31354787204`: `quality` and Linux `release-smoke` both success.
+- [PENDING] final documentation HEAD CI and annotated tag.
 
 Residual risks: backup v1 is uncompressed and unencrypted; hashes do not protect against a hostile
 workspace owner. No cloud backup, purge, multi-device sync, or public package upload.
