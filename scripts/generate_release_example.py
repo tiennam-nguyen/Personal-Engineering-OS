@@ -8,16 +8,15 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from peos.adapters.filesystem.hardening import FilesystemHardeningRepository
+from peos.adapters.filesystem.source_object_store import FilesystemSourceObjectStore
+from peos.adapters.filesystem.workspace import WorkspaceStore
+from peos.bootstrap import initialize_workspace
 from tests.evaluation_support import qualify_claim_extraction, qualify_project_planning
 from tests.project_support import PROTOCOL as PROJECT_PROTOCOL
 from tests.research_support import PROTOCOL as RESEARCH_PROTOCOL
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-
-from peos.adapters.filesystem.hardening import FilesystemHardeningRepository
-from peos.adapters.filesystem.source_object_store import FilesystemSourceObjectStore
-from peos.adapters.filesystem.workspace import WorkspaceStore
-from peos.bootstrap import initialize_workspace
 
 
 def digest(value: str) -> str:

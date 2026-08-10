@@ -35,6 +35,9 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["peos", "tests"]
+
 [tool.mypy]
 files = ["src", "tests"]
 python_version = "3.11"
