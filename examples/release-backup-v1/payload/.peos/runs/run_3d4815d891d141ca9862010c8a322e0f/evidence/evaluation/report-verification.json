@@ -1,0 +1,12 @@
+{
+  "content_hash": "sha256:0c7a4bbb0fd2fe15ea15b6e75cd2f228e980bde7b10e2f1236f9c4dd60574777",
+  "data": {
+    "artifact_id": "art_879a5f41a76f4327b5ba641d113516ce",
+    "content_hash": "sha256:22ac917dc666f76015ba5faa5201b45c82510497e1cffd94cdd0302a3efad92e",
+    "valid": true
+  },
+  "kind": "eval_report_verification",
+  "run_id": "run_3d4815d891d141ca9862010c8a322e0f",
+  "schema_version": 1,
+  "step_id": "step_a280ff5e85288f86a1162d4134bc9f17"
+}

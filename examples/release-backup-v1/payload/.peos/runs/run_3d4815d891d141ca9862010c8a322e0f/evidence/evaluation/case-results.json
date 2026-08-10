@@ -1,0 +1,16 @@
+{
+  "content_hash": "sha256:894e5dce97377056ee7fe2d2a8e5805f7062313d11231db11d87d649cd8e6851",
+  "data": {
+    "cases": [
+      {
+        "call_id": "eval-0001-934dc1110d4d",
+        "case_id": "project_planning.basic",
+        "frozen_case_hash": "sha256:9d042b186d88f1a88bc6d2049caa2e8de4e59a74df7dc484c911cf7b49e2590e"
+      }
+    ]
+  },
+  "kind": "eval_case_results",
+  "run_id": "run_3d4815d891d141ca9862010c8a322e0f",
+  "schema_version": 1,
+  "step_id": "step_37e9993ab5e412776a1f424309b6f98a"
+}

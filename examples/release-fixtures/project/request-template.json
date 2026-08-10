@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "project_slug": "release-health",
+  "request": "Compile the smallest bounded status-change plan.",
+  "stakeholder": "Release operator",
+  "intolerable_failure": "Scope widens beyond approved fixture paths.",
+  "constraints": ["no new runtime dependency"],
+  "definition_of_done": "The status regression test remains explicit.",
+  "deadline": null,
+  "verification": {
+    "cwd": ".",
+    "argv": ["python", "-m", "pytest", "-q"],
+    "expected_exit_code": 0,
+    "expected_evidence": "fixture tests pass"
+  },
+  "research_synthesis_id": null,
+  "sensitivity": "private"
+}

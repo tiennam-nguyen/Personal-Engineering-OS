@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "goal_slug": "binary-search-correctness",
+  "performance": "Given a sorted array and trace, identify the valid interval and next boundary.",
+  "conditions": ["ascending integer array", "inclusive interval convention"],
+  "quality_bar": "Preserve the interval invariant and choose the valid update.",
+  "deadline": null,
+  "review_after_days": 3,
+  "time_budget_minutes": 10,
+  "sensitivity": "private"
+}

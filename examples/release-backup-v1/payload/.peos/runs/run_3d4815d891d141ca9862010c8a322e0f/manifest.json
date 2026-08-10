@@ -1,0 +1,46 @@
+{
+  "created_at": "2026-08-10T04:08:50.765282Z",
+  "input_manifest_hash": "sha256:fa9e1bcf1ba8ae368def98da1788ae5b0160d507d0809ede8f7e1b79bd9cc6ba",
+  "protocol_hashes": [
+    {
+      "name": "project.plan-compilation",
+      "sha256": "sha256:5b5a3b26d55bccb5bc7738bdfef72cc0372c87608f8ddefa002a952622cb974f",
+      "version": "1.0.0"
+    }
+  ],
+  "run_id": "run_3d4815d891d141ca9862010c8a322e0f",
+  "schema_version": 1,
+  "steps": [
+    {
+      "max_attempts": 1,
+      "max_output_bytes": 1048576,
+      "name": "freeze-eval-suite",
+      "ordinal": 1,
+      "side_effect": "REVERSIBLE_WRITE",
+      "step_id": "step_cd62654b0b6c25d51051638828c71b2d",
+      "version": "1.0.0"
+    },
+    {
+      "max_attempts": 1,
+      "max_output_bytes": 1048576,
+      "name": "execute-eval-cases",
+      "ordinal": 2,
+      "side_effect": "EXTERNAL_CALL",
+      "step_id": "step_37e9993ab5e412776a1f424309b6f98a",
+      "version": "1.0.0"
+    },
+    {
+      "max_attempts": 1,
+      "max_output_bytes": 1048576,
+      "name": "commit-eval-report",
+      "ordinal": 3,
+      "side_effect": "REVERSIBLE_WRITE",
+      "step_id": "step_a280ff5e85288f86a1162d4134bc9f17",
+      "version": "1.0.0"
+    }
+  ],
+  "workflow": {
+    "name": "system.evaluate-model-route",
+    "version": "1.0.0"
+  }
+}

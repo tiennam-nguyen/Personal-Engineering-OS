@@ -44,6 +44,7 @@ CREATE TABLE relation (
 CREATE INDEX relation_source ON relation(source_artifact_id);
 CREATE INDEX relation_target ON relation(target_artifact_id);
 """
+CURRENT_SCHEMA_VERSION = 2
 
 
 class SQLiteArtifactIndex:
@@ -169,6 +170,21 @@ class SQLiteArtifactIndex:
             return False
         return True
 
+    def schema_version(self) -> int:
+        if not self._path.exists():
+            return 0
+        connection = self._connect(self._path)
+        try:
+            try:
+                row = connection.execute(
+                    "SELECT value FROM metadata WHERE key = ?", ("schema_version",)
+                ).fetchone()
+            except sqlite3.Error:
+                return 0
+            return 0 if row is None else int(row["value"])
+        finally:
+            connection.close()
+
     @staticmethod
     def _connect(path: Path) -> sqlite3.Connection:
         connection = sqlite3.connect(path, timeout=5)
@@ -181,7 +197,8 @@ class SQLiteArtifactIndex:
     def _create_schema(connection: sqlite3.Connection) -> None:
         connection.executescript(SCHEMA)
         connection.execute(
-            "INSERT INTO metadata(key, value) VALUES (?, ?)", ("schema_version", "2")
+            "INSERT INTO metadata(key, value) VALUES (?, ?)",
+            ("schema_version", str(CURRENT_SCHEMA_VERSION)),
         )
 
     @staticmethod
@@ -192,7 +209,7 @@ class SQLiteArtifactIndex:
             ).fetchone()
         except sqlite3.Error as error:
             raise WorkspaceConfigurationError("Artifact index schema is unavailable.") from error
-        if row is None or row["value"] != "2":
+        if row is None or row["value"] != str(CURRENT_SCHEMA_VERSION):
             raise WorkspaceConfigurationError("Artifact index schema is incompatible.")
 
     @staticmethod

@@ -8,19 +8,24 @@ import os
 import sys
 from pathlib import Path
 
+from peos import __version__
 from peos.bootstrap import (
     initialize_workspace,
     mutation_lock,
     open_crossflow_workspace,
     open_evaluation_workspace,
     open_graph_workspace,
+    open_hardening_workspace,
     open_learning_workspace,
+    open_migration_workspace,
     open_project_workspace,
     open_protocol_workspace,
     open_research_workspace,
     open_run_for_id,
     open_run_workspace,
     open_workspace,
+    restore_backup_path,
+    verify_backup_path,
 )
 from peos.domain.artifacts.model import StoredArtifact
 from peos.domain.errors import PeosError
@@ -28,6 +33,7 @@ from peos.domain.errors import PeosError
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="peos")
+    parser.add_argument("--version", action="version", version=f"peos {__version__}")
     parser.add_argument("--workspace", default=".")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("init")
@@ -125,6 +131,32 @@ def _parser() -> argparse.ArgumentParser:
     eval_compare = evaluation.add_parser("compare")
     eval_compare.add_argument("run_a")
     eval_compare.add_argument("run_b")
+    backup = commands.add_parser("backup").add_subparsers(dest="backup_command", required=True)
+    backup_create = backup.add_parser("create")
+    backup_create.add_argument("--output")
+    backup_create.add_argument("--dry-run", action="store_true")
+    backup_verify = backup.add_parser("verify")
+    backup_verify.add_argument("backup_path")
+    backup_restore = backup.add_parser("restore")
+    backup_restore.add_argument("backup_path")
+    backup_restore.add_argument("--to", required=True)
+    backup_restore.add_argument("--dry-run", action="store_true")
+    commands.add_parser("doctor")
+    gc = commands.add_parser("gc").add_subparsers(dest="gc_command", required=True)
+    gc.add_parser("plan")
+    gc_execute = gc.add_parser("execute")
+    gc_execute.add_argument("plan_id")
+    gc_execute.add_argument("--backup", required=True)
+    gc_execute.add_argument("--yes", action="store_true")
+    gc_execute.add_argument("--dry-run", action="store_true")
+    migrate = commands.add_parser("migrate").add_subparsers(dest="migrate_command", required=True)
+    migrate.add_parser("status")
+    migrate.add_parser("plan")
+    migrate_apply = migrate.add_parser("apply")
+    migrate_apply.add_argument("plan_id")
+    migrate_apply.add_argument("--backup")
+    migrate_apply.add_argument("--yes", action="store_true")
+    migrate_apply.add_argument("--dry-run", action="store_true")
     return parser
 
 
@@ -165,6 +197,16 @@ def main(argv: list[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
     workspace = Path(arguments.workspace).resolve()
     try:
+        if arguments.command == "backup" and arguments.backup_command == "verify":
+            _emit(verify_backup_path(Path(arguments.backup_path)))
+            return 0
+        if arguments.command == "backup" and arguments.backup_command == "restore":
+            _emit(
+                restore_backup_path(
+                    Path(arguments.backup_path), Path(arguments.to), arguments.dry_run
+                )
+            )
+            return 0
         if arguments.command == "init":
             _, _, workspace_id, created = initialize_workspace(workspace)
             _emit(
@@ -175,6 +217,55 @@ def main(argv: list[str] | None = None) -> int:
                 }
             )
             return 0
+        if arguments.command == "backup" and arguments.backup_command == "create":
+            with mutation_lock(workspace, "backup create"):
+                _emit(
+                    open_hardening_workspace(workspace).create_backup(
+                        None if arguments.output is None else Path(arguments.output),
+                        arguments.dry_run,
+                    )
+                )
+            return 0
+        if arguments.command == "doctor":
+            _emit(open_hardening_workspace(workspace).doctor())
+            return 0
+        if arguments.command == "migrate":
+            migrations = open_migration_workspace(workspace)
+            if arguments.migrate_command == "status":
+                _emit(migrations.status())
+                return 0
+            if arguments.migrate_command == "plan":
+                with mutation_lock(workspace, "migrate plan"):
+                    _emit(migrations.plan())
+                return 0
+            if arguments.migrate_command == "apply":
+                with mutation_lock(workspace, "migrate apply"):
+                    _emit(
+                        migrations.apply(
+                            arguments.plan_id,
+                            None if arguments.backup is None else Path(arguments.backup),
+                            confirmed=arguments.yes,
+                            dry_run=arguments.dry_run,
+                        )
+                    )
+                return 0
+        if arguments.command == "gc":
+            hardening = open_hardening_workspace(workspace)
+            if arguments.gc_command == "plan":
+                with mutation_lock(workspace, "gc plan"):
+                    _emit(hardening.gc_plan())
+                return 0
+            if arguments.gc_command == "execute":
+                with mutation_lock(workspace, "gc execute"):
+                    _emit(
+                        hardening.gc_execute(
+                            arguments.plan_id,
+                            Path(arguments.backup),
+                            confirmed=arguments.yes,
+                            dry_run=arguments.dry_run,
+                        )
+                    )
+                return 0
         artifacts, indexing = open_workspace(workspace)
         if arguments.command == "protocol":
             protocols = open_protocol_workspace(workspace)

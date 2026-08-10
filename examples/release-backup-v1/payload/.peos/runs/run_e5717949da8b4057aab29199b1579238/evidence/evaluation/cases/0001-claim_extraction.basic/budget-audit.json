@@ -1,0 +1,26 @@
+{
+  "content_hash": "sha256:822aae84a1c6093baaf524b4bafca84285e5c43e3607ceccc09c0eeed15e66b4",
+  "data": {
+    "outcome": {
+      "passed": true,
+      "reason_codes": [],
+      "scorer": "deterministic.budget.v1"
+    },
+    "usage": {
+      "cache_hit_count": 0,
+      "input_bytes": 754,
+      "input_tokens": 14,
+      "monetary_cost": null,
+      "observed_wall_seconds": 0.0,
+      "output_bytes": 595,
+      "output_tokens": 10,
+      "pricing_status": "unknown",
+      "provider_calls": 1,
+      "token_measurement": "mock_whitespace_v1"
+    }
+  },
+  "kind": "model_budget_audit",
+  "run_id": "run_e5717949da8b4057aab29199b1579238",
+  "schema_version": 1,
+  "step_id": "step_6b22ae3db9de235157e46c4372e01165"
+}

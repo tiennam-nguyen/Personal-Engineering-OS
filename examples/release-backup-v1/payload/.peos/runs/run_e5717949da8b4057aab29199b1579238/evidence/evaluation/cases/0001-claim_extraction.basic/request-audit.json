@@ -1,0 +1,20 @@
+{
+  "content_hash": "sha256:e6ded66affb0a33edc19cd18414a36dc4d51700817d8c71ce960aa6e20bd3b29",
+  "data": {
+    "cache_policy": "bypass",
+    "call_id": "eval-0001-faa287985eaa",
+    "case_id": "claim_extraction.basic",
+    "output_schema_hash": "sha256:a219de3c8d569a2005b9d840246608f0dcede4432b4c30337f5bf4a6f16b19b8",
+    "request_fingerprint": "sha256:faa287985eaa3afe837236c610c27f1f8d24dfcda4bd9a81eb07121e98cb1ea8",
+    "route": {
+      "model": "deterministic-claim-extractor-v1",
+      "model_revision": "1",
+      "provider": "mock"
+    },
+    "task_kind": "claim_extraction"
+  },
+  "kind": "model_request_audit",
+  "run_id": "run_e5717949da8b4057aab29199b1579238",
+  "schema_version": 1,
+  "step_id": "step_6b22ae3db9de235157e46c4372e01165"
+}

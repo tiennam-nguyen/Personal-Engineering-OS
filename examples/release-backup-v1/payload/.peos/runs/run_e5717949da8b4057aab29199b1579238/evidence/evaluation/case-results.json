@@ -1,0 +1,16 @@
+{
+  "content_hash": "sha256:f05ae3b2cc31e7ca66bb4749f225c5418f7743da69795b4a0070c593cf2b81e9",
+  "data": {
+    "cases": [
+      {
+        "call_id": "eval-0001-faa287985eaa",
+        "case_id": "claim_extraction.basic",
+        "frozen_case_hash": "sha256:9b4c3f04217830541ffb7a7efeeb98a83cc8b0be70793b7ae6f9a34e9d1c0ee8"
+      }
+    ]
+  },
+  "kind": "eval_case_results",
+  "run_id": "run_e5717949da8b4057aab29199b1579238",
+  "schema_version": 1,
+  "step_id": "step_6b22ae3db9de235157e46c4372e01165"
+}

@@ -1,0 +1,20 @@
+{
+  "content_hash": "sha256:1aef1d4f8003c2fbd7be973c89e6c4adff5457ae7977664b14502bff878984db",
+  "data": {
+    "cache_policy": "bypass",
+    "call_id": "eval-0001-934dc1110d4d",
+    "case_id": "project_planning.basic",
+    "output_schema_hash": "sha256:325aab7710a578bb14c8171f594e69e9246008054f6e82b1ea7232d94832cedb",
+    "request_fingerprint": "sha256:934dc1110d4d42ac87c6e70284b43079298b6ac21acc8647cfc3f1a799ec7bfd",
+    "route": {
+      "model": "deterministic-project-planner-v1",
+      "model_revision": "1",
+      "provider": "mock"
+    },
+    "task_kind": "project_planning"
+  },
+  "kind": "model_request_audit",
+  "run_id": "run_3d4815d891d141ca9862010c8a322e0f",
+  "schema_version": 1,
+  "step_id": "step_37e9993ab5e412776a1f424309b6f98a"
+}

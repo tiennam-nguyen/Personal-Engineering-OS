@@ -10,3 +10,5 @@ build/
 dist/
 *.egg-info/
 .peos/
+!examples/release-backup-v1/payload/.peos/
+!examples/release-backup-v1/payload/.peos/**

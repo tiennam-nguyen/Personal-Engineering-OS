@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "target_concept_id": "binary-search-correctness",
+  "concepts": [
+    {
+      "id": "ordered-comparison",
+      "title": "Ordered comparison",
+      "definition": "Compare values in order.",
+      "prerequisites": [],
+      "examples": [],
+      "counterexamples": [],
+      "common_confusions": []
+    },
+    {
+      "id": "binary-search-interval",
+      "title": "Binary search interval",
+      "definition": "Maintain the active interval.",
+      "prerequisites": ["ordered-comparison"],
+      "examples": [],
+      "counterexamples": [],
+      "common_confusions": []
+    },
+    {
+      "id": "binary-search-correctness",
+      "title": "Binary search correctness",
+      "definition": "Preserve the search invariant.",
+      "prerequisites": ["binary-search-interval"],
+      "examples": [],
+      "counterexamples": [],
+      "common_confusions": []
+    }
+  ],
+  "diagnostic_tasks": [
+    {
+      "id": "diag-a",
+      "concept_id": "ordered-comparison",
+      "dimension": "recall",
+      "prompt": "Which relation is ascending?",
+      "answer": {
+        "kind": "single_choice",
+        "options": [{"id": "a", "text": "x <= y"}, {"id": "b", "text": "x > y"}],
+        "correct_option_id": "a"
+      }
+    },
+    {
+      "id": "diag-b",
+      "concept_id": "binary-search-interval",
+      "dimension": "explanation",
+      "prompt": "Name the active interval.",
+      "answer": {"kind": "exact_text", "accepted": ["low through high"]}
+    },
+    {
+      "id": "diag-c",
+      "concept_id": "binary-search-correctness",
+      "dimension": "discrimination",
+      "prompt": "Pick valid update.",
+      "answer": {
+        "kind": "single_choice",
+        "options": [{"id": "a", "text": "low=mid+1"}, {"id": "b", "text": "low=mid"}],
+        "correct_option_id": "a"
+      }
+    }
+  ],
+  "responses": [
+    {"task_id": "diag-a", "answer": "a"},
+    {"task_id": "diag-b", "answer": "entire array"},
+    {"task_id": "diag-c", "answer": "a"}
+  ],
+  "exercise_bank": [
+    {
+      "id": "exercise-interval-1",
+      "concept_id": "binary-search-interval",
+      "dimension": "explanation",
+      "prompt": "State the active interval.",
+      "estimated_minutes": 5,
+      "answer": {"kind": "exact_text", "accepted": ["low through high"]}
+    }
+  ]
+}

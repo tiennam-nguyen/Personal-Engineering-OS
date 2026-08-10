@@ -19,3 +19,20 @@ jobs:
       - run: uv run --locked ruff check .
       - run: uv run --locked mypy
       - run: uv run --locked pytest
+
+  release-smoke:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+      - run: uv python install 3.11
+      - run: uv build
+      - run: uv run --locked python scripts/inspect_release_artifacts.py dist/peos-1.0.0-py3-none-any.whl dist/peos-1.0.0.tar.gz
+      - run: uv venv .release-venv --python 3.11
+      - run: uv pip install --python .release-venv/bin/python dist/peos-1.0.0-py3-none-any.whl
+      - run: .release-venv/bin/peos --version
+      - run: .release-venv/bin/python -c "import peos; print(peos.__version__, peos.__file__)"
+      - run: python scripts/release_acceptance.py --peos-exe .release-venv/bin/peos --example-backup examples/release-backup-v1 --fixtures examples/release-fixtures

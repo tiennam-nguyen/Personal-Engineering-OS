@@ -1,0 +1,88 @@
+schema_version: 1
+id: project_planning.basic
+task_kind: project_planning
+input_fixture:
+  request: Add a bounded status check.
+  stakeholder: Local developer
+  intolerable_failure: Scope widens.
+  constraints: &id001
+  - no dependency
+  definition_of_done: Status test passes.
+  expected_evidence: pytest exits zero
+  reads:
+  - path: src/app.py
+  candidate_change_paths: &id002
+  - src/app.py
+  - tests/test_app.py
+  forbidden_change_paths: &id003
+  - README.md
+  sensitivity: private
+expected:
+  schema_version: 1
+  objective:
+    mission: Add a bounded status check.
+    stakeholder: Local developer
+    optimized_attributes:
+    - scope safety
+    - repository provenance
+    - recoverability
+    deliberate_sacrifices:
+    - general repository comprehension
+    - automatic coding
+    non_negotiables:
+    - Scope widens.
+    - no dependency
+    assumptions: []
+    scope_exclusions:
+    - autonomous repository modification
+    - command execution
+  requirements:
+  - key: REQ-001
+    actor: Local developer
+    trigger: the walking skeleton is implemented
+    observable_behavior: Status test passes.
+    constraints: *id001
+    failure_behavior: Scope widens.
+    priority: must
+    acceptance:
+      method: reported_command
+      expected_evidence: pytest exits zero
+    source: project_request
+  architecture:
+    main_design: Make the minimum change inside the approved paths.
+    pre_mortem: Scope escape or regression invalidates the result.
+    orthogonal: Check whether tests or documentation alone can meet the objective.
+    shadow_review: Review maintainability, scope, and recovery before acceptance.
+    door_decisions:
+    - decision: Preserve the public contract
+      classification: one_way
+      treatment_kind: seam
+      treatment: Keep the change behind existing boundaries.
+    trade_ledger:
+    - gained: bounded change
+      lost: broad redesign
+      who_pays: implementer
+      when_due: this milestone
+      compounds: 'no'
+    recommendation: Implement and verify the single walking skeleton.
+    falsifier: A required change lies outside the approved paths.
+    repository_claims:
+    - claim: These files were explicitly read by PEOS.
+      evidence_paths:
+      - src/app.py
+  walking_skeleton:
+    key: M1
+    objective: Add a bounded status check.
+    allowed_paths: *id002
+    forbidden_paths: *id003
+    deliverables:
+    - Status test passes.
+    definition_of_done: Status test passes.
+    rollback_recovery: Revert only approved changed files using the target repository
+      recovery path.
+    risks:
+    - Scope widens.
+    assumptions: []
+tags:
+- core
+- injection

@@ -156,3 +156,28 @@ def test_evaluation_repository_implements_port_shape_and_no_bypass_flag() -> Non
         if path.name != "evaluations.py"
     )
     assert "bypass_qualification" not in production
+
+
+def test_hardening_boundaries_and_offline_core() -> None:
+    domain = SOURCE_ROOT / "domain" / "hardening.py"
+    assert not any(
+        module.startswith(("peos.adapters", "peos.cli", "pathlib", "os", "sqlite3"))
+        for module in _imported_modules(domain)
+    )
+    production = [
+        SOURCE_ROOT / "application" / "hardening.py",
+        SOURCE_ROOT / "application" / "migrations.py",
+        SOURCE_ROOT / "adapters" / "filesystem" / "hardening.py",
+        SOURCE_ROOT / "adapters" / "filesystem" / "migrations.py",
+    ]
+    network = ("requests", "httpx", "urllib", "aiohttp", "socket")
+    assert not any(
+        module.startswith(network) for path in production for module in _imported_modules(path)
+    )
+
+
+def test_cli_does_not_write_backup_or_canonical_files_directly() -> None:
+    source = (SOURCE_ROOT / "cli" / "main.py").read_text(encoding="utf-8")
+    assert ".write_text(" not in source
+    assert ".write_bytes(" not in source
+    assert "shutil" not in source

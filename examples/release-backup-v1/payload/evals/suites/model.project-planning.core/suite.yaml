@@ -1,0 +1,32 @@
+schema_version: 1
+name: model.project-planning.core
+version: 1.0.0
+task_kind: project_planning
+protocol:
+  name: project.plan-compilation
+  version: 1.0.0
+  sha256: sha256:5b5a3b26d55bccb5bc7738bdfef72cc0372c87608f8ddefa002a952622cb974f
+output_contract:
+  name: project.charter_draft.v1
+  schema_hash: sha256:325aab7710a578bb14c8171f594e69e9246008054f6e82b1ea7232d94832cedb
+required_capabilities:
+- structured_output
+sensitivity_ceiling: private
+scorers:
+  deterministic:
+  - deterministic.contract.v1
+  - deterministic.budget.v1
+  reference:
+  - reference.exact_output.v1
+thresholds:
+  deterministic_all_pass: true
+  min_reference_pass_rate: 1.0
+budget:
+  max_provider_calls_per_case: 1
+  max_input_tokens_per_case: 10000
+  max_output_tokens_per_case: 10000
+  max_input_bytes_per_case: 1000000
+  max_output_bytes_per_case: 1000000
+cases:
+- path: evals/suites/model.project-planning.core/cases/basic.yaml
+  sha256: sha256:9d042b186d88f1a88bc6d2049caa2e8de4e59a74df7dc484c911cf7b49e2590e

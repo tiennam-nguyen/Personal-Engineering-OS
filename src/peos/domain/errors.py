@@ -333,3 +333,23 @@ class LearningAttemptInvalid(PeosError):
 class LearningMasteryConflict(PeosError):
     code = "learning_mastery_conflict"
     exit_code = 4
+
+
+class HardeningIntegrityError(PeosError):
+    code = "hardening_integrity_error"
+    exit_code = 4
+
+
+class BackupConflictError(PeosError):
+    code = "backup_conflict"
+    exit_code = 4
+
+
+class MigrationBlockedError(PeosError):
+    code = "migration_blocked"
+    exit_code = 4
+
+
+class GarbageCollectionBlockedError(PeosError):
+    code = "gc_blocked"
+    exit_code = 4

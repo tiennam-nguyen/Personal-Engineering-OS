@@ -1,8 +1,9 @@
 [project]
 name = "peos"
-version = "0.0.0"
+version = "1.0.0"
 description = "Personal Engineering OS"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6,<7",

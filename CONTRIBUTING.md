@@ -145,3 +145,11 @@ update the raw case hash in its suite and the raw suite hash in `evals/registry.
 repository, scorer, workflow, resume, cancellation, qualification, tamper, invalidation, and
 SQLite-rebuild tests before the complete gate. A completed call must not repeat on resume, and an
 unknown call outcome must raise rather than retry or fabricate a qualification result.
+
+## Release hardening verification
+
+Run backup/restore tamper and fault tests, migration and GC ruin gates, doctor/security tests, and the
+full quality gate. Build and inspect both archives, install the wheel into a fresh environment, then
+run `scripts/release_acceptance.py` against `examples/release-backup-v1`. Never overwrite a backup
+or restore target, register a test migration in production, purge quarantine, force push, or move a
+release tag. Regenerate the synthetic backup only with `python -m scripts.generate_release_example`.

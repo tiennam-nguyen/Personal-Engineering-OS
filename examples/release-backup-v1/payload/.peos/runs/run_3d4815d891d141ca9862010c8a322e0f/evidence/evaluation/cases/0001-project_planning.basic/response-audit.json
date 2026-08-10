@@ -1,0 +1,120 @@
+{
+  "content_hash": "sha256:1ad5200e7685785d66f29badab1396b7a2a4aaf93f3979bff903b9f09c6b3c82",
+  "data": {
+    "cache_hit": false,
+    "content": "{\"architecture\":{\"door_decisions\":[{\"classification\":\"one_way\",\"decision\":\"Preserve the public contract\",\"treatment\":\"Keep the change behind existing boundaries.\",\"treatment_kind\":\"seam\"}],\"falsifier\":\"A required change lies outside the approved paths.\",\"main_design\":\"Make the minimum change inside the approved paths.\",\"orthogonal\":\"Check whether tests or documentation alone can meet the objective.\",\"pre_mortem\":\"Scope escape or regression invalidates the result.\",\"recommendation\":\"Implement and verify the single walking skeleton.\",\"repository_claims\":[{\"claim\":\"These files were explicitly read by PEOS.\",\"evidence_paths\":[\"src/app.py\"]}],\"shadow_review\":\"Review maintainability, scope, and recovery before acceptance.\",\"trade_ledger\":[{\"compounds\":\"no\",\"gained\":\"bounded change\",\"lost\":\"broad redesign\",\"when_due\":\"this milestone\",\"who_pays\":\"implementer\"}]},\"objective\":{\"assumptions\":[],\"deliberate_sacrifices\":[\"general repository comprehension\",\"automatic coding\"],\"mission\":\"Add a bounded status check.\",\"non_negotiables\":[\"Scope widens.\",\"no dependency\"],\"optimized_attributes\":[\"scope safety\",\"repository provenance\",\"recoverability\"],\"scope_exclusions\":[\"autonomous repository modification\",\"command execution\"],\"stakeholder\":\"Local developer\"},\"requirements\":[{\"acceptance\":{\"expected_evidence\":\"pytest exits zero\",\"method\":\"reported_command\"},\"actor\":\"Local developer\",\"constraints\":[\"no dependency\"],\"failure_behavior\":\"Scope widens.\",\"key\":\"REQ-001\",\"observable_behavior\":\"Status test passes.\",\"priority\":\"must\",\"source\":\"project_request\",\"trigger\":\"the walking skeleton is implemented\"}],\"schema_version\":1,\"walking_skeleton\":{\"allowed_paths\":[\"src/app.py\",\"tests/test_app.py\"],\"assumptions\":[],\"definition_of_done\":\"Status test passes.\",\"deliverables\":[\"Status test passes.\"],\"forbidden_paths\":[\"README.md\"],\"key\":\"M1\",\"objective\":\"Add a bounded status check.\",\"risks\":[\"Scope widens.\"],\"rollback_recovery\":\"Revert only approved changed files using the target repository recovery path.\"}}",
+    "finish_reason": "stop",
+    "model": "deterministic-project-planner-v1",
+    "model_revision": "1",
+    "parsed_output": {
+      "architecture": {
+        "door_decisions": [
+          {
+            "classification": "one_way",
+            "decision": "Preserve the public contract",
+            "treatment": "Keep the change behind existing boundaries.",
+            "treatment_kind": "seam"
+          }
+        ],
+        "falsifier": "A required change lies outside the approved paths.",
+        "main_design": "Make the minimum change inside the approved paths.",
+        "orthogonal": "Check whether tests or documentation alone can meet the objective.",
+        "pre_mortem": "Scope escape or regression invalidates the result.",
+        "recommendation": "Implement and verify the single walking skeleton.",
+        "repository_claims": [
+          {
+            "claim": "These files were explicitly read by PEOS.",
+            "evidence_paths": [
+              "src/app.py"
+            ]
+          }
+        ],
+        "shadow_review": "Review maintainability, scope, and recovery before acceptance.",
+        "trade_ledger": [
+          {
+            "compounds": "no",
+            "gained": "bounded change",
+            "lost": "broad redesign",
+            "when_due": "this milestone",
+            "who_pays": "implementer"
+          }
+        ]
+      },
+      "objective": {
+        "assumptions": [],
+        "deliberate_sacrifices": [
+          "general repository comprehension",
+          "automatic coding"
+        ],
+        "mission": "Add a bounded status check.",
+        "non_negotiables": [
+          "Scope widens.",
+          "no dependency"
+        ],
+        "optimized_attributes": [
+          "scope safety",
+          "repository provenance",
+          "recoverability"
+        ],
+        "scope_exclusions": [
+          "autonomous repository modification",
+          "command execution"
+        ],
+        "stakeholder": "Local developer"
+      },
+      "requirements": [
+        {
+          "acceptance": {
+            "expected_evidence": "pytest exits zero",
+            "method": "reported_command"
+          },
+          "actor": "Local developer",
+          "constraints": [
+            "no dependency"
+          ],
+          "failure_behavior": "Scope widens.",
+          "key": "REQ-001",
+          "observable_behavior": "Status test passes.",
+          "priority": "must",
+          "source": "project_request",
+          "trigger": "the walking skeleton is implemented"
+        }
+      ],
+      "schema_version": 1,
+      "walking_skeleton": {
+        "allowed_paths": [
+          "src/app.py",
+          "tests/test_app.py"
+        ],
+        "assumptions": [],
+        "definition_of_done": "Status test passes.",
+        "deliverables": [
+          "Status test passes."
+        ],
+        "forbidden_paths": [
+          "README.md"
+        ],
+        "key": "M1",
+        "objective": "Add a bounded status check.",
+        "risks": [
+          "Scope widens."
+        ],
+        "rollback_recovery": "Revert only approved changed files using the target repository recovery path."
+      }
+    },
+    "provider": "mock",
+    "provider_request_id": "mockreq_934dc1110d4d42ac87c6e70284b43079",
+    "response_hash": "sha256:b7fa2755cf58602f877bc131c085ba8440469c0c7f77024050b25d4cebb75bcc",
+    "usage": {
+      "input_bytes": 0,
+      "input_tokens": 0,
+      "output_bytes": 2010,
+      "output_tokens": 104,
+      "token_measurement": "mock_whitespace_v1"
+    }
+  },
+  "kind": "model_response_audit",
+  "run_id": "run_3d4815d891d141ca9862010c8a322e0f",
+  "schema_version": 1,
+  "step_id": "step_37e9993ab5e412776a1f424309b6f98a"
+}

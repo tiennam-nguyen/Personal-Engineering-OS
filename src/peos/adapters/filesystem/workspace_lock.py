@@ -88,3 +88,19 @@ class WorkspaceLock(AbstractContextManager["WorkspaceLock"]):
             _release_platform_lock(self._handle)
             self._handle.close()
             self._handle = None
+
+
+def lock_is_active(lock_path: Path) -> bool:
+    """Probe the process-held lock without changing lock metadata or creating a file."""
+    if not lock_path.exists():
+        return False
+    handle = lock_path.open("r+b")
+    try:
+        try:
+            _try_acquire_platform_lock(handle)
+        except OSError:
+            return True
+        _release_platform_lock(handle)
+        return False
+    finally:
+        handle.close()

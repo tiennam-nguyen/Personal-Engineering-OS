@@ -252,3 +252,23 @@ cross-suite ranking, or threshold tuning from observed results.
 
 Milestone 9 frontier only: release hardening and end-to-end packaging. Do not add new model tasks,
 provider integrations, or evaluation policy in that milestone without a new decision.
+
+## Milestone 9 — hardening and release
+
+Status: `AMBER` until remote CI is GREEN and the final v1.0.0 tag is created.
+
+Delivered backup/restore, schema-2 legacy-index rebuild, test-only canonical migration ruin gate,
+retention and quarantine-only GC, read-only doctor/security checks, v1 packaging, synthetic release
+backup/fixtures, archive inspector, black-box acceptance, and Linux release-smoke CI.
+
+- [RAN] M8 `b4e833b0dd95d2e4161062fc7636a2a4fa666007`: schema 2 current, doctor healthy,
+  backup/restore generation equal, run `run_a5de6f67b5964d0081af0b1b121404da` valid.
+- [RAN] backup `bkp_34f92285398740cba0f14f7a449771e4`, generation
+  `sha256:43a0a776304c3bce4c2ebad78155675f103e8d7cc9d6c906992cc014c70ee1a8`,
+  manifest `sha256:d04f58a615bddc9b104c2bca17b775a5fa92de805bb70066f99d4c577d212767`.
+- [RAN] executable acceptance passed all three compilers plus attempt, rebuilt 13 artifacts, and
+  reported doctor healthy before and after index destruction.
+- [PENDING] final regression, detached checkout, implementation/final CI, annotated tag.
+
+Residual risks: backup v1 is uncompressed and unencrypted; hashes do not protect against a hostile
+workspace owner. No cloud backup, purge, multi-device sync, or public package upload.

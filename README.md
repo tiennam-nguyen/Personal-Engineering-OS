@@ -1,5 +1,23 @@
 # PEOS
 
+## PEOS v1 local release
+
+PEOS is local-first: canonical files and immutable evidence survive loss of disposable SQLite.
+
+```text
+uv build
+uv pip install --python /path/to/python dist/peos-1.0.0-py3-none-any.whl
+peos --workspace WORKSPACE init
+peos --workspace WORKSPACE doctor
+peos --workspace WORKSPACE backup create --output BACKUP
+peos backup verify BACKUP
+peos backup restore BACKUP --to NEW_WORKSPACE
+```
+
+Restore only to a new path. Canonical migrations and GC require exact-generation verified backups;
+v1 GC quarantines and never purges. If SQLite is lost, remove only `.peos/index.sqlite3`, run
+`index rebuild`, then `doctor`. Backups contain private workspace content and are unencrypted.
+
 ## Cross-Workflow Graph (Milestone 7)
 
 ```text

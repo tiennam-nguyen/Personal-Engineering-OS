@@ -7,6 +7,12 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from peos.adapters.filesystem.evaluation_repository import FilesystemEvaluationSuiteRepository
+from peos.adapters.filesystem.hardening import (
+    FilesystemHardeningRepository,
+    restore_backup,
+    verify_backup,
+)
+from peos.adapters.filesystem.migrations import FilesystemMigrationRepository
 from peos.adapters.filesystem.model_cache import FilesystemModelCache
 from peos.adapters.filesystem.project_estate_reader import FilesystemProjectEstateReader
 from peos.adapters.filesystem.protocol_repository import FilesystemProtocolRepository
@@ -23,8 +29,10 @@ from peos.application.crossflow import CrossflowService
 from peos.application.evaluation_candidates import CandidateCatalog
 from peos.application.evaluations import EvaluationService
 from peos.application.graph import GraphService
+from peos.application.hardening import HardeningService
 from peos.application.indexing import IndexingService
 from peos.application.learning import LearningService
+from peos.application.migrations import MigrationService
 from peos.application.modeling import ModelCallService
 from peos.application.project import ProjectService
 from peos.application.qualifications import QualificationService
@@ -86,6 +94,28 @@ def open_run_workspace(root: Path, fault_injector: FaultInjector | None = None) 
 def open_protocol_workspace(root: Path) -> FilesystemProtocolRepository:
     workspace = WorkspaceStore().open(root)
     return FilesystemProtocolRepository(workspace.root)
+
+
+def open_hardening_workspace(
+    root: Path, fault_injector: FaultInjector | None = None
+) -> HardeningService:
+    workspace = WorkspaceStore().open(root, ensure_layout=False)
+    return HardeningService(FilesystemHardeningRepository(workspace, fault_injector))
+
+
+def verify_backup_path(path: Path) -> dict[str, object]:
+    return verify_backup(path)
+
+
+def open_migration_workspace(root: Path) -> MigrationService:
+    workspace = WorkspaceStore().open(root, ensure_layout=False)
+    return MigrationService(FilesystemMigrationRepository(workspace))
+
+
+def restore_backup_path(
+    backup: Path, target: Path, dry_run: bool = False, fault_injector: FaultInjector | None = None
+) -> dict[str, object]:
+    return restore_backup(backup, target, dry_run, fault_injector)
 
 
 def open_research_workspace(
